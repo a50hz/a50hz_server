@@ -30,7 +30,9 @@ SECRET_KEY = '&3ty6=-x4tbm^$i09uv*6gama%9ednb^pz5hgc=fb5=1qd3&$2'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.1.10', 
+                'localhost',
+                '127.0.0.1']
 
 
 # Application definition
@@ -82,7 +84,7 @@ WSGI_APPLICATION = 'geodjango.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',#'django.db.backends.postgresql_psycopg2'
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': 'a50ghz',
         'USER': 'a50ghz_user',
         'PASSWORD': 'magic_measurements',

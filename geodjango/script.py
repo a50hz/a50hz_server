@@ -5,7 +5,7 @@ import geojsoncontour
 
 
 def prepare_file():
-    lon_range, lat_range = np.mgrid[55.889:56.2:0.0000005, 54.675:54.95:0.01]
+    lon_range, lat_range = np.mgrid[55.889:56.2:0.05, 54.675:54.95:0.01]
     Z = np.sinc(lon_range) * np.cos(lat_range)
     figure = plt.figure()
     ax = figure.add_subplot(111)
@@ -15,8 +15,9 @@ def prepare_file():
         ndigits=3,
         unit='m'
     )
-    f = open("C:/dev/geodjango/main/templates/main/data.json", "w+")
-    f.write(geojson)
+    return geojson
+    #f = open("C:/dev/geodjango/main/templates/main/data.json", "w+")
+    #f.write(geojson)
 
 
 def set_data():

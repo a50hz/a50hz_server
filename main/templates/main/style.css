@@ -1,0 +1,14 @@
+#map {
+    height: 87vh;
+    width: 100%;
+    margin: auto;
+}
+.side-bar {
+    height:10vh;
+    width: 100%;
+    border: 2px solid black;
+    background-color: rgb(235, 236, 172);
+}
+body {
+    margin: 0px;
+}

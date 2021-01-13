@@ -14,7 +14,8 @@ async function get_data(url){
         x1: b._northEast.lng,
         x2: b._southWest.lng,
         y1: b._northEast.lat,
-        y2: b._southWest.lat
+        y2: b._southWest.lat,
+        zoom: map.getZoom()
     };
     let response = await fetch(url, {
         method: 'POST',

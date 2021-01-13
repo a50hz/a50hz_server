@@ -18,7 +18,7 @@ def index(request):
 def get_isolines(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        return HttpResponse(script.get_isolines(data['x1'], data['x2'], data['y1'], data['y2']))
+        return HttpResponse(script.get_isolines(data['x1'], data['x2'], data['y1'], data['y2'], data['zoom']))
 
     
 def get_heatmap(request):

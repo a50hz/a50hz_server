@@ -29,7 +29,7 @@ def get_isolines(x1, x2, y1, y2, zoom):
     step = max((x1-x2)/(250), (y1-y2)/(250))
     lon_array = [i for i in np.arange(x2,x1,step)] #ширина
     lat_array = [i for i in np.arange(y2,y1,step)] #высота
-    area = 0.0005
+    area = step
     data = get_data(x1, x2, y1, y2, area)
     point_grid = np.zeros(
         (len(lat_array), len(lon_array))
@@ -43,7 +43,7 @@ def get_isolines(x1, x2, y1, y2, zoom):
                 if lon_array[j] + area >= k.longitude >= lon_array[j] - area and lat_array[i] + area >= k.latitude >= lat_array[i] - area:
                     sum += k.data
                     n +=1
-            point_grid[i][j] = sum / n if n != 0 else None # int(math.log(sum / n, 1.5))
+            point_grid[i][j] = int(math.log(sum / n, 1.5)) if n != 0 else None # int(math.log(sum / n, 1.5))
         print(i/len(point_grid))
 
     point_grid.tofile('data1.txt',sep=' ')
@@ -58,7 +58,7 @@ def get_isolines(x1, x2, y1, y2, zoom):
 
     figure = plt.figure()
     ax = figure.add_subplot(111)
-    contour = ax.contour(lon_array, lat_array, point_grid, levels=300, cmap=plt.cm.jet)
+    contour = ax.contour(lon_array, lat_array, point_grid, levels=range(0,16), cmap=plt.cm.jet)
     geojson = geojsoncontour.contour_to_geojson(
         contour=contour,
         ndigits=3,

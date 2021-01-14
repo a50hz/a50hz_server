@@ -1,7 +1,9 @@
+from geojson.geometry import Point
 import numpy as np
 import matplotlib.pyplot as plt
 import geojsoncontour
 import math
+import pandas as pd
 from django.db import connection
 from main.models import Measurement
 
@@ -24,11 +26,11 @@ def aget_isolines(x1, x2, y1, y2):
 
 def get_isolines(x1, x2, y1, y2, zoom):
     #data =  my_custom_sql("SELECT * FROM public.main_measurement WHERE ({} < longitude) and (longitude < {}) and ({} < latitude) and (latitude < {})".format((lon_array[i]-step), (lon_array[i]+step), (lat_array[j]-step), (lat_array[j]+step)))
-    step = max((x1-x2)/(100*2**(19/zoom+1)), (y1-y2)/(100*2**(19/zoom+1)))
+    step = max((x1-x2)/(250), (y1-y2)/(250))
     lon_array = [i for i in np.arange(x2,x1,step)] #ширина
     lat_array = [i for i in np.arange(y2,y1,step)] #высота
-
-    data = get_data(x1, x2, y1, y2, step)
+    area = 0.0005
+    data = get_data(x1, x2, y1, y2, area)
     point_grid = np.zeros(
         (len(lat_array), len(lon_array))
     )
@@ -38,15 +40,25 @@ def get_isolines(x1, x2, y1, y2, zoom):
             sum = 0
             n = 0
             for k in data:
-                if lon_array[j] + step >= k.longitude >= lon_array[j] - step and lat_array[i] + step >= k.latitude >= lat_array[i] - step:
+                if lon_array[j] + area >= k.longitude >= lon_array[j] - area and lat_array[i] + area >= k.latitude >= lat_array[i] - area:
                     sum += k.data
                     n +=1
-            point_grid[i][j] = int(math.log(sum / n, 1.5)) if n != 0 else sum
+            point_grid[i][j] = sum / n if n != 0 else None # int(math.log(sum / n, 1.5))
         print(i/len(point_grid))
+
+    point_grid.tofile('data1.txt',sep=' ')
+
+    df = pd.DataFrame(data=point_grid, index=lat_array, columns=lon_array, dtype=float)
+    point_grid = df.interpolate(method='pad', axis=0, limit_area='outside')
+    df = df.dropna(axis=0, how='all')
+    lat_array = point_grid.index
+    lon_array = point_grid.columns
+    point_grid = point_grid.to_numpy()
+    point_grid.tofile('data2.txt',sep=' ')
 
     figure = plt.figure()
     ax = figure.add_subplot(111)
-    contour = ax.contour(lon_array, lat_array, point_grid, levels=16, cmap=plt.cm.jet)
+    contour = ax.contour(lon_array, lat_array, point_grid, levels=300, cmap=plt.cm.jet)
     geojson = geojsoncontour.contour_to_geojson(
         contour=contour,
         ndigits=3,

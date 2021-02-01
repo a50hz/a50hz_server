@@ -5,17 +5,30 @@ function getTypeUrl() {
     return "heatmap"
 }
 
-async function get_data(url){
+function getTypeMethod() {
+    if (griddata.checked){
+        return "griddata"
+    }
+    else if (spline.checked){
+        return "spline"
+    }
+    return "pandas"
+}
+
+async function get_data(url, method){
     if (url == undefined){
         url = getTypeUrl();
     }   
+    if (method == undefined){
+        method = getTypeMethod();
+    } 
     b = map.getBounds()
     let borders = {
         x1: b._northEast.lng,
         x2: b._southWest.lng,
         y1: b._northEast.lat,
         y2: b._southWest.lat,
-        zoom: map.getZoom()
+        method: method
     };
     let response = await fetch(url, {
         method: 'POST',

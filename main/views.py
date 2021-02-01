@@ -18,9 +18,16 @@ def index(request):
 def get_isolines(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        return HttpResponse(script.get_isolines(data['x1'], data['x2'], data['y1'], data['y2']))
+        if data['method'] == "griddata":
+            return HttpResponse(script.get_isolines_griddata(data['x1'], data['x2'], data['y1'], data['y2']))
+        elif data['method'] == "spline":
+            return HttpResponse(script.get_isolines_spline(data['x1'], data['x2'], data['y1'], data['y2']))
+        elif data['method'] == "pandas":
+            return HttpResponse(script.get_isolines_pandas(data['x1'], data['x2'], data['y1'], data['y2']))
+    else:
+        return HttpResponse("Я жду POST запрос!")
 
-    
+        
 def get_heatmap(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -47,6 +54,20 @@ def data(request):
         row = Measurement(data=data.value, date_time=date, 
             longitude=loc.longitude, latitude=loc.latitude)
         row.save()
+        return HttpResponse("Чекай табличку, детка!")
+    else:
+        return HttpResponse("Я жду POST запрос!")
+
+
+def best_data(request):
+    if request.method == 'POST':
+        data = json.loads(request.body, object_hook=obj)
+        for i in data.measurements:
+            date = datetime.datetime.fromtimestamp(i.timestamp/1000)
+            loc = i.geolocation
+            row = Measurement(data=data.value, date_time=date, 
+                longitude=loc.longitude, latitude=loc.latitude)
+            row.save()
         return HttpResponse("Чекай табличку, детка!")
     else:
         return HttpResponse("Я жду POST запрос!")

@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "c:\\Data\\a50hz_server\\vkr\\Scripts\\python.exe"
+    "python.pythonPath": "c:\\Data\\a50hz_server\\vkr\\Scripts\\python.exe",
+    "git.ignoreLimitWarning": true
 }

@@ -1,10 +1,12 @@
 import numpy as np
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt 
 import geojsoncontour
+import pandas as pd
 from django.db import connection
+from scipy.interpolate.ndgriddata import griddata
 from main.models import Measurement
 from numba import njit, prange
-from scipy.interpolate import interp2d
+from scipy.interpolate import SmoothBivariateSpline
 
 
 @njit(fastmath=True, parallel=True)
@@ -24,35 +26,105 @@ def fill_grid(grid, data, lon_array, lat_array, area):
     return grid
 
 
-def get_isolines(x1, x2, y1, y2):
-    step = max((x1-x2)/4096, (y1-y2)/4096)
+#@njit(fastmath=True)
+def delete_nans(point_grid, lon_array, lat_array):
+    point_grid = point_grid.ravel()
+    lon_array = lon_array.ravel()
+    lon_array = np.asarray(lon_array[point_grid!=np.isnan])
+    lat_array = lat_array.ravel()
+    lat_array = np.asarray(lat_array[point_grid!=np.isnan])
+    point_grid = np.asarray(lat_array[point_grid!=np.isnan])
+    return point_grid, lon_array, lat_array
+
+
+def get_isolines_griddata(x1, x2, y1, y2):
+    step = max((x1-x2)/512, (y1-y2)/512)
     area = step / 2
+    
+    new_lon_array = np.asarray([round(i,6) for i in np.arange(x2,x1,step)]) #ширина 
+    new_lat_array = np.asarray([round(i,6) for i in np.arange(y2,y1,step)]) #высота
+    point_grid = np.zeros((len(new_lat_array), len(new_lon_array)))
+
     data = get_data(x1, x2, y1, y2, area)
+    point_grid = fill_grid(point_grid, data, new_lon_array, new_lat_array, area)
+    point_grid[point_grid == -1] = None
+    
+    lon_array, lat_array = np.meshgrid(new_lon_array, new_lat_array)
+    point_grid, lon_array, lat_array = delete_nans(point_grid, lon_array, lat_array)
+    new_point_grid = griddata((lon_array, lat_array), point_grid, (new_lon_array[None,:], new_lat_array[:,None]), method='linear')
+
+    figure = plt.figure()
+    ax = figure.add_subplot(111)
+    contour = ax.contour(new_lon_array, new_lat_array, new_point_grid, levels=range(0,17), cmap=plt.cm.jet)
+    plt.show()
+    geojson = geojsoncontour.contour_to_geojson(
+        contour=contour,
+        ndigits=3,
+        unit='m',
+    )
+    return geojson
+
+
+def get_isolines_spline(x1, x2, y1, y2):
+    step = max((x1-x2)/512, (y1-y2)/512)
+    area = step / 2
+
+    new_lon_array = np.asarray([round(i,6) for i in np.arange(x2,x1,step)]) #ширина 
+    new_lat_array = np.asarray([round(i,6) for i in np.arange(y2,y1,step)]) #высота
+    point_grid = np.zeros((len(new_lat_array), len(new_lon_array)))
+
+    data = get_data(x1, x2, y1, y2, area)
+    point_grid = fill_grid(point_grid, data, new_lon_array, new_lat_array, area)
+    point_grid[point_grid == -1] = None
+
+    lon_array, lat_array = np.meshgrid(new_lon_array, new_lat_array)
+    point_grid, lon_array, lat_array = delete_nans(point_grid, lon_array, lat_array)
+
+    f = SmoothBivariateSpline(lon_array, lat_array, point_grid, kx=1, ky=1)
+    new_point_grid = np.transpose(f(new_lon_array, new_lat_array))
+
+    figure = plt.figure()
+    ax = figure.add_subplot(111)
+    contour = ax.contour(new_lon_array, new_lat_array, new_point_grid, levels=range(0,17), cmap=plt.cm.jet)
+    plt.show()
+    geojson = geojsoncontour.contour_to_geojson(
+        contour=contour,
+        ndigits=3,
+        unit='m',
+    )
+    return geojson
+
+
+def get_isolines_pandas(x1, x2, y1, y2):
+    step = max((x1-x2)/512, (y1-y2)/512)
+    area = step / 2
+
     lon_array = np.asarray([round(i,6) for i in np.arange(x2,x1,step)]) #ширина 
     lat_array = np.asarray([round(i,6) for i in np.arange(y2,y1,step)]) #высота
     point_grid = np.zeros((len(lat_array), len(lon_array)))
 
+    data = get_data(x1, x2, y1, y2, area)
     point_grid = fill_grid(point_grid, data, lon_array, lat_array, area)
     point_grid[point_grid == -1] = None
 
-    point_grid1 = interp2d(lon_array, lat_array, point_grid) #функция интерполяции, позже нужно кинуть данные на которые хочешь интерполировать
-    # сравнить работу интерполяций пандаса, нампая и скипая
-    print(type(point_grid1))
     df = pd.DataFrame(data=point_grid, index=lat_array, columns=lon_array, dtype=float)
-    point_grid = df.interpolate(method='pad', axis=0, limit_area='outside')
+    df = df.interpolate(method='pad', axis=0, limit_direction='forward')
     df = df.dropna(axis=0, how='all')
-    lat_array = point_grid.index
-    lon_array = point_grid.columns
-    point_grid = point_grid.to_numpy()
-    point_grid.tofile('data2.txt',sep=' ')
+    df = df.dropna(axis=1, how='all')
+    df = df.interpolate(method='pad', axis=0, limit_direction='forward')
+    lat_array = df.index
+    lon_array = df.columns
+    point_grid = df.to_numpy()
+    point_grid.tofile('data.txt',sep=' ')
 
     figure = plt.figure()
     ax = figure.add_subplot(111)
-    contour = ax.contour(lon_array, lat_array, point_grid, levels=range(0,16), cmap=plt.cm.jet)
+    contour = ax.contour(lon_array, lat_array, point_grid, levels=range(0,17), cmap=plt.cm.jet)
+    plt.show()
     geojson = geojsoncontour.contour_to_geojson(
         contour=contour,
         ndigits=3,
-        unit='m'
+        unit='m',
     )
     return geojson
 

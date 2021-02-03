@@ -67,3 +67,7 @@ def best_data(request):
         return HttpResponse("Чекай табличку, детка!")
     else:
         return HttpResponse("Я жду POST запрос!")
+
+
+def privacy(request):
+    return render(request, 'main/privacy.txt', content_type="text/plain")

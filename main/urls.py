@@ -8,5 +8,6 @@ urlpatterns = [
     path('heatmap', views.get_heatmap),
     path('about', views.about),
     path('style.css', views.style),
-    path('scripts.js', views.scripts)
+    path('scripts.js', views.scripts),
+    path('privacy', views.privacy)
 ]

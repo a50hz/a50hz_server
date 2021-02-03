@@ -70,4 +70,4 @@ def best_data(request):
 
 
 def privacy(request):
-    return render(request, 'main/privacy.txt', content_type="text/plain")
+    return render(request, 'main/privacy.txt')

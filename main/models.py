@@ -2,6 +2,7 @@ from django.db import models
 
 # Create your models here.
 class Measurement(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     data = models.DecimalField(max_digits=7, decimal_places=2)
     longitude = models.DecimalField(max_digits=9, decimal_places=6)
     latitude = models.DecimalField(max_digits=8, decimal_places=6)
@@ -30,7 +31,7 @@ class Plot(models.Model):
     date = models.DateTimeField()
     type = models.fields.CharField(max_length=50)
     interpolation_type = models.fields.CharField(max_length=50)
-    extentId = models.BigIntegerField(serialize=False)
+    Extent = models.ForeignKey(Extent, on_delete=models.DO_NOTHING)
 
     def __str__(self):
         return '{}'.format(self.id)

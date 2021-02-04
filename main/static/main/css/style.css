@@ -1,0 +1,28 @@
+#map {
+    flex: 1;
+    margin-top: 56px;
+}
+body, html {
+    margin: 0px;
+    width: 100%;
+    height: 100%;
+}
+.page-container {
+    display:flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+.buttons-right {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+@media (max-width: 992px) {
+    .buttons-right {
+        justify-content: flex-start;
+    }
+}
+.leaflet-tile {
+    -webkit-filter: hue-rotate(180deg) invert(100%);
+}

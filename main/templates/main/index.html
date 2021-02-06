@@ -35,9 +35,9 @@
                 Build isolines
               </a>
               <ul class="dropdown-menu" aria-labelledby="isolinesDropdown">
-                <li><a class="dropdown-item" href="#" onclick="get_data('isolines', 'griddata')">Встроенная интерполяция</a></li>
-                <li><a class="dropdown-item" href="#" onclick="get_data('isolines', 'spline')">Интерполяция из scipy</a></li>
-                <li><a class="dropdown-item" href="#" onclick="get_data('isolines', 'pandas')">Интерполяция из pandas</a></li>
+                <li><a class="dropdown-item" href="#" onclick="get_plot('isolines', 'griddata')">Встроенная интерполяция</a></li>
+                <li><a class="dropdown-item" href="#" onclick="get_plot('isolines', 'spline')">Интерполяция из scipy</a></li>
+                <li><a class="dropdown-item" href="#" onclick="get_plot('isolines', 'pandas')">Интерполяция из pandas</a></li>
               </ul>
             </li>
             <li class="nav-item dropdown" style="width: 228px;">
@@ -45,9 +45,9 @@
                 Build heatmap
               </a>
               <ul class="dropdown-menu" aria-labelledby="heatmapDropdown">
-                <li><a class="dropdown-item" href="#" onclick="get_data('heatmap', 'griddata')">Встроенная интерполяция</a></li>
-                <li><a class="dropdown-item" href="#" onclick="get_data('heatmap', 'spline')">Интерполяция из scipy</a></li>
-                <li><a class="dropdown-item" href="#" onclick="get_data('heatmap', 'pandas')">Интерполяция из pandas</a></li>
+                <li><a class="dropdown-item" href="#" onclick="get_plot('heatmap', 'griddata')">Встроенная интерполяция</a></li>
+                <li><a class="dropdown-item" href="#" onclick="get_plot('heatmap', 'spline')">Интерполяция из scipy</a></li>
+                <li><a class="dropdown-item" href="#" onclick="get_plot('heatmap', 'pandas')">Интерполяция из pandas</a></li>
               </ul>
             </li>
           </ul>
@@ -69,10 +69,11 @@
     })
     L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
     
-    var northEast = new L.LatLng(54.84541854328474, 56.252851476199766),
-    southWest = new L.LatLng(54.6910178907174, 55.81426574491862),
+    var northEast = new L.LatLng(54.88171287988406, 56.25546815666543),
+    southWest = new L.LatLng(54.65420224851977, 55.81155047330775),
     bounds = new L.LatLngBounds(southWest, northEast);
     map.fitBounds(bounds)
+    console.log(map.getBounds())
 
     var GeoJSONLayers = new L.layerGroup();
     GeoJSONLayers.addTo(map); 

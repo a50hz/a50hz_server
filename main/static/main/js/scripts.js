@@ -1,51 +1,29 @@
-function getTypeUrl() {
-    if (isolines.checked){
-        return "isolines"
-    }
-    return "heatmap"
-}
-
-function getTypeMethod() {
-    if (griddata.checked){
-        return "griddata"
-    }
-    else if (spline.checked){
-        return "spline"
-    }
-    return "pandas"
-}
-
-async function get_data(url, method){
-    if (url == undefined){
-        url = getTypeUrl();
-    }   
-    if (method == undefined){
-        method = getTypeMethod();
-    } 
+async function get_plot(type, method){
     b = map.getBounds()
-    let borders = {
-        x1: b._northEast.lng,
-        x2: b._southWest.lng,
-        y1: b._northEast.lat,
-        y2: b._southWest.lat,
-        method: method
+    let extent = {
+        lat1: b._northEast.lat,
+        lat2: b._southWest.lat,
+        lng1: b._northEast.lng,
+        lng2: b._southWest.lng,
+        method: method,
+        type: type
     };
-    let response = await fetch(url, {
+    let response = await fetch('plot', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json;charset=utf-8'
         },
-        body: JSON.stringify(borders)
+        body: JSON.stringify(extent)
     });
     if (response.ok) {
         let json = await response.json();
-        get_layer(json);
+        set_layer(json);
     } else {
         alert("Ошибка HTTP: " + response.status);
     }
 }
 
-function get_layer(GeoData){
+function set_layer(GeoData){
     if (GeoJSONLayers.length != 0){
         GeoJSONLayers.clearLayers();
     }

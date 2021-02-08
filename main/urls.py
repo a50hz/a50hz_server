@@ -8,5 +8,6 @@ urlpatterns = [
     path('plot', views.get_plot),
     path('measurements', views.data),
     path('update', views.update),
+    path('privacy', views.privacy),
     path('about', views.about)
 ]

@@ -4,3 +4,13 @@ test.py
 /griddata.txt
 /pandas.txt
 /spline.txt
+MyVKR/__pycache__/
+__pycache__/script.cpython-38.pyc
+main/__pycache__/
+main/migrations/__pycache__/
+__pycache__
+__pycache__/script.cpython-38.pyc
+main/__pycache__/urls.cpython-38.pyc
+main/__pycache__/views.cpython-38.pyc
+main/__pycache__/urls.cpython-38.pyc
+main/__pycache__/views.cpython-38.pyc

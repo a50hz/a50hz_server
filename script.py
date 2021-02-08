@@ -43,7 +43,7 @@ def get_data(lat1, lat2, lng1, lng2, step):
 
 # первоначальное создание неообходимых для обработки массивов
 def prepare_table(lat1, lat2, lng1, lng2):
-    step = max((lat2-lat1)/64, (lng2-lng1)/64)
+    step = max((lat2-lat1)/2048, (lng2-lng1)/2048)
     area = step / 2
     
     new_lat_array = np.asarray([round(i,6) for i in np.arange(lat1,lat2,step)]) #ширина 

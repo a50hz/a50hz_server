@@ -49,6 +49,9 @@ def about(request):
     return HttpResponse("<h4>Page about GeoMagScan</h4>")
 
 
+def privacy(request):
+    return render(request, 'main/privacy.txt')
+
 def data(request):
     if request.method == 'POST':
         data = json.loads(request.body, object_hook=obj)

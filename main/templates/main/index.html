@@ -58,23 +58,48 @@
   </div>
   <script>
     var map = L.map('map', {
-    center: [0, 0],
+      center: [5,10],
       zoomSnap: 0.025,
-      zoom: 11.775,
-      zoomControl: false,
-      doubleClickZoom: false,
-      scrollWheelZoom: false,
-      keyboard: false,
-      dragging: false
+      zoom: 11.775
     })
     L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-    
-    var northEast = new L.LatLng(54.88171287988406, 56.25546815666543),
-    southWest = new L.LatLng(54.65420224851977, 55.81155047330775),
-    bounds = new L.LatLngBounds(southWest, northEast);
-    map.fitBounds(bounds)
+
     var GeoJSONLayers = new L.layerGroup();
-    GeoJSONLayers.addTo(map); 
+    GeoJSONLayers.addTo(map);
+
+    const obj2Url = (data) => Object.keys(data).map(function(k) {
+      return encodeURIComponent(k) + '=' + encodeURIComponent(data[k])
+    }).join('&')
+
+    const url2Obj = (url) => {
+      if (!url) return {}
+      return JSON.parse('{"' + decodeURI(url).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g,'":"') + '"}')
+    }
+
+    const url_state = url2Obj(location.hash.substr(1) || '')
+    url_state.lat = +url_state.lat;
+    url_state.lng = +url_state.lng;
+
+
+    const write_state = () => {
+      const string_state = obj2Url(url_state)
+      location.hash = string_state;
+    }  
+        
+    (function load_saves(){
+      const {lat, lng, zoom} =  url_state;
+      if (lat != undefined && lng != undefined && zoom != undefined){
+        map.panTo(L.latLng(lat, lng))
+        map.setZoom(zoom)
+      }
+    })()
+
+    map.on('moveend', function() {
+      info = ''
+      const {lat,lng} = map.getCenter();      
+      [url_state.lat, url_state.lng, url_state.zoom] = [lat, lng, map.getZoom()]
+      write_state()
+    })
 	</script>
 </body>
 </html>

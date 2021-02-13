@@ -4,7 +4,7 @@ import geojsoncontour
 import pandas as pd
 from django.db import connection
 from scipy.interpolate.ndgriddata import griddata
-from main.models import Measurement
+from main.models import Extent, Measurement, Plot
 from numba import jit, prange
 from scipy.interpolate import SmoothBivariateSpline
 
@@ -127,6 +127,20 @@ def set_plot(data, type):
         return make_isolines(*data)
     else:
         return make_heatmap(*data)
+
+
+def update():
+    print('')
+    for extent in Extent.objects.all():
+        coordinates = [extent.lat1, extent.lat2, extent.lng1, extent.lng2]
+        coordinates = map(float, coordinates)
+        lon_array, lat_array, point_grid = prepare_table(*coordinates)
+        for method in ['griddata', 'spline', 'pandas']:
+            data = get_processed_data(lon_array, lat_array, point_grid, method)
+            for type in ['isolines', 'heatmap']:
+                plot = set_plot(data, type)
+                result = Plot(value=plot, type=type, interpolation_type=method, Extent=extent)
+                result.save()   
     
 
 # для запросов через sql

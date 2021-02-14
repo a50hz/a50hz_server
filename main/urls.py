@@ -7,6 +7,7 @@ urlpatterns = [
     path('', views.index),
     path('plot', views.get_plot),
     path('measurements', views.data),
+    path('marker', views.marker),
     path('privacy', views.privacy),
     path('about', views.about)
 ]

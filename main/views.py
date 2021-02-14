@@ -22,8 +22,14 @@ def get_plot(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         plot = Plot.objects.get(type=data['type'], interpolation_type=data['method'], Extent_id=1)
-        print(plot)
     return HttpResponse(plot.value)              
+
+
+def marker(request):
+    res = list(Measurement.objects.all().values('latitude','longitude','data'))
+    for i in range(len(res)):
+        res[i] = list(map(float, res[i].values()))
+    return HttpResponse(json.dumps(res))
 
 
 def about(request):

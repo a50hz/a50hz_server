@@ -130,7 +130,6 @@ def set_plot(data, type):
 
 
 def update():
-    print('')
     for extent in Extent.objects.all():
         coordinates = [extent.lat1, extent.lat2, extent.lng1, extent.lng2]
         coordinates = map(float, coordinates)

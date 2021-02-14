@@ -39,10 +39,12 @@ async function get_markers(){
 }
 
 function set_markers(Data){
-    if (GeoJSONLayers.length != 0){
-        GeoJSONLayers.clearLayers();
-    }
-    var GeoLayer = L.geoJSON()
-    GeoLayer.addData(GeoData)
-    GeoJSONLayers.addLayer(GeoLayer);
+    if (MarkerLayers.getLayers().length != 0){
+        MarkerLayers.clearLayers();
+    } else {
+        Data.forEach(element => {
+            marker = L.marker([element[0], element[1]]).bindPopup(element[2].toString());
+            MarkerLayers.addLayer(marker);
+        })
+    } 
 }

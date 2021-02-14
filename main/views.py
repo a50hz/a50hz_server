@@ -1,11 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from .models import Measurement, Plot, Extent
-from script import set_plot, get_processed_data, prepare_table
-from datetime import datetime as dt
-import numpy as np
+from .models import Measurement, Plot
+from datetime import datetime
 import json
-import datetime
 
 class obj:
 
@@ -21,8 +18,8 @@ def index(request):
 def get_plot(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        plot = Plot.objects.get(type=data['type'], interpolation_type=data['method'], Extent_id=1)
-    return HttpResponse(plot.value)              
+        plot = list(Plot.objects.order_by('date').reverse().filter(type=data['type'], interpolation_type=data['method'], Extent_id=1))
+    return HttpResponse(plot[0].value)            
 
 
 def marker(request):

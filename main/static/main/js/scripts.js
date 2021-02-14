@@ -1,6 +1,5 @@
-async function get_plot(id, type, method){
+async function get_plot(type, method){
     let extent = {
-        id: id,
         type: type,
         method: method
     };

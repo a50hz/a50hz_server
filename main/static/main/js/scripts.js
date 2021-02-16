@@ -45,7 +45,7 @@ function set_markers(Data){
         MarkerLayers.clearLayers();
     } else {
         Data.forEach(element => {
-            marker = L.marker([element[0], element[1]]).bindPopup(element[2].toString());
+            marker = L.circleMarker([element[0], element[1]], {radius: 5}).bindPopup(element[2].toString());
             MarkerLayers.addLayer(marker);
         })
     } 

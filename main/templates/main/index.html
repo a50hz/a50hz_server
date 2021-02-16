@@ -64,14 +64,15 @@
     var map = L.map('map', {
       center: [5,10],
       zoomSnap: 0.025,
-      zoom: 11.775
+      zoom: 11.775,
+      preferCanvas: true
     })
     L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
     var GeoJSONLayers = new L.layerGroup();
     GeoJSONLayers.addTo(map);
 
-    var MarkerLayers = new L.markerClusterGroup();
+    var MarkerLayers = new L.layerGroup();
     map.addLayer(MarkerLayers);
 
     const obj2Url = (data) => Object.keys(data).map(function(k) {

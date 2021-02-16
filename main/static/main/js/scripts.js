@@ -24,6 +24,10 @@ function set_layer(GeoData){
     }
     var GeoLayer = L.geoJSON()
     GeoLayer.addData(GeoData)
+    console.log(GeoLayer)
+    for (i in GeoLayer._layers){
+        GeoLayer._layers[i].options.color = GeoLayer._layers[i].feature.properties.stroke
+    }
     GeoJSONLayers.addLayer(GeoLayer);
 }
 

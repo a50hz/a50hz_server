@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from .models import Measurement, Plot
-from datetime import datetime
+import datetime
 import json
 
 class obj:
@@ -40,25 +40,20 @@ def privacy(request):
 def data(request):
     if request.method == 'POST':
         data = json.loads(request.body, object_hook=obj)
-        date = datetime.datetime.fromtimestamp(data.timestamp/1000)
-        loc = data.geolocation
-        row = Measurement(data=data.value, date_time=date, 
-            longitude=loc.longitude, latitude=loc.latitude)
-        row.save()
-        return HttpResponse("Чекай табличку, детка!")
-    else:
-        return HttpResponse("Я жду POST запрос!")
-
-
-def best_data(request):
-    if request.method == 'POST':
-        data = json.loads(request.body, object_hook=obj)
-        for i in data.measurements:
-            date = datetime.datetime.fromtimestamp(i.timestamp/1000)
-            loc = i.geolocation
+        if hasattr(data, 'measurements'):
+            for i in data.measurements:
+                date = datetime.datetime.fromtimestamp(i.timestamp/1000)
+                loc = i.geolocation
+                row = Measurement(data=i.value, date_time=date, 
+                    longitude=loc.longitude, latitude=loc.latitude)
+                row.save()
+            return HttpResponse("Добавлен лист новых измерений")
+        else:
+            date = datetime.datetime.fromtimestamp(data.timestamp/1000)
+            loc = data.geolocation
             row = Measurement(data=data.value, date_time=date, 
                 longitude=loc.longitude, latitude=loc.latitude)
             row.save()
-        return HttpResponse("Чекай табличку, детка!")
+            return HttpResponse("Добавлено новое измерение")
     else:
         return HttpResponse("Я жду POST запрос!")

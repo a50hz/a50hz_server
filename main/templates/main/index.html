@@ -39,9 +39,8 @@
                 Build isolines
               </a>
               <ul class="dropdown-menu" aria-labelledby="isolinesDropdown">
-                <li><a class="dropdown-item" href="#" onclick="get_plot('isolines', 'griddata')">Встроенная интерполяция</a></li>
-                <li><a class="dropdown-item" href="#" onclick="get_plot('isolines', 'spline')">Интерполяция из scipy</a></li>
-                <li><a class="dropdown-item" href="#" onclick="get_plot('isolines', 'pandas')">Интерполяция из pandas</a></li>
+                <li><a class="dropdown-item" href="#" onclick="get_plot('isolines', 'griddata')">Griddata интерполяция</a></li>
+                <li><a class="dropdown-item" href="#" onclick="get_plot('isolines', 'rfb')">RFB Интерполяция</a></li>
               </ul>
             </li>
             <li class="nav-item dropdown" style="width: 228px;">
@@ -49,9 +48,8 @@
                 Build heatmap
               </a>
               <ul class="dropdown-menu" aria-labelledby="heatmapDropdown">
-                <li><a class="dropdown-item" href="#" onclick="get_plot('heatmap', 'griddata')">Встроенная интерполяция</a></li>
-                <li><a class="dropdown-item" href="#" onclick="get_plot('heatmap', 'spline')">Интерполяция из scipy</a></li>
-                <li><a class="dropdown-item" href="#" onclick="get_plot('heatmap', 'pandas')">Интерполяция из pandas</a></li>
+                <li><a class="dropdown-item" href="#" onclick="get_plot('heatmap', 'griddata')">Griddata интерполяция</a></li>
+                <li><a class="dropdown-item" href="#" onclick="get_plot('heatmap', 'rfb')">RFB Интерполяция</a></li>
               </ul>
             </li>
           </ul>
@@ -62,9 +60,9 @@
   </div>
   <script>
     var map = L.map('map', {
-      center: [5,10],
+      center: [54.779285910582296, 56.07228095554424],
       zoomSnap: 0.025,
-      zoom: 11.775,
+      zoom: 11.5,
       preferCanvas: true
     })
     L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);

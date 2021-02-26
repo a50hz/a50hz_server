@@ -3,10 +3,12 @@ import matplotlib.pyplot as plt
 import geojsoncontour
 import pandas as pd
 from django.db import connection
+from scipy.interpolate import interp2d
 from scipy.interpolate.ndgriddata import griddata
 from main.models import Extent, Measurement, Plot
 from numba import jit, prange
 from scipy.interpolate import SmoothBivariateSpline
+from scipy.interpolate import Rbf
 
 # заполнение сетки значениями точек
 @jit(fastmath=True, parallel=True, nopython=True)
@@ -20,20 +22,11 @@ def fill_grid(grid, data, lon_array, lat_array, area):
                     sum = sum + k[0]
                     n = n + 1
             if n!=0:
-                grid[i][j] = np.log(sum / n)/np.log(1.5)
+                grid[i][j] = (sum // n) - 50
             else:
-                grid[i][j] = -1
+                grid[i][j] = 0
     return grid
 
-# удаление None значений
-def delete_nans(point_grid, lon_array, lat_array):
-    point_grid = point_grid.ravel()
-    lon_array = lon_array.ravel()
-    lon_array = np.asarray(lon_array[point_grid!=np.isnan])
-    lat_array = lat_array.ravel()
-    lat_array = np.asarray(lat_array[point_grid!=np.isnan])
-    point_grid = np.asarray(lat_array[point_grid!=np.isnan])
-    return point_grid, lon_array, lat_array
 
 # получение точек по экстенту
 def get_data(lat1, lat2, lng1, lng2, step):
@@ -43,83 +36,76 @@ def get_data(lat1, lat2, lng1, lng2, step):
 
 # первоначальное создание неообходимых для обработки массивов
 def prepare_table(lat1, lat2, lng1, lng2):
-    step = max((lat2-lat1)/2048, (lng2-lng1)/2048)
+    step = max((lat2-lat1)/128, (lng2-lng1)/128)
     area = step / 2
     
-    new_lat_array = np.asarray([round(i,6) for i in np.arange(lat1,lat2,step)]) #ширина 
-    new_lon_array = np.asarray([round(i,6) for i in np.arange(lng1,lng2,step)]) #высота
-    point_grid = np.zeros((len(new_lat_array), len(new_lon_array)))
+    lat_array = np.asarray([round(i,6) for i in np.arange(lat1,lat2,step)]) #ширина 
+    lon_array = np.asarray([round(i,6) for i in np.arange(lng1,lng2,step)]) #высота
+    point_grid = np.zeros((len(lat_array), len(lon_array)))
     data = get_data(lat1, lat2, lng1, lng2, area)
-    point_grid = fill_grid(point_grid, data, new_lon_array, new_lat_array, area)
-    point_grid[point_grid == -1] = None
+    point_grid = fill_grid(point_grid, data, lon_array, lat_array, area)
     
-    return new_lon_array, new_lat_array, point_grid 
+    return lon_array, lat_array, point_grid 
 
 # построение изолиний из обработанных данных
 def make_isolines(lon_array, lat_array, point_grid):
     figure = plt.figure()
     ax = figure.add_subplot(111)
-    contour = ax.contour(lon_array, lat_array, point_grid, levels=range(0,17), cmap=plt.cm.jet)
+    contour = ax.contour(lon_array, lat_array, point_grid, levels=range(-50, 101), cmap=plt.cm.jet)
     geojson = geojsoncontour.contour_to_geojson(
         contour=contour,
         ndigits=3,
-        unit='m',
+        unit='nT',
     )
     return geojson
 
 # построение теплововой карты из обработанных данных
-def make_heatmap(lon_array, lat_array, point_grid):
+def make_heatmap(lon_array, lat_array, point_grid): 
     figure = plt.figure()
     ax = figure.add_subplot(111)
-    contourf = ax.contourf(lon_array, lat_array, point_grid, levels=range(0,17), cmap=plt.cm.jet)
+    contourf = ax.contourf(lon_array, lat_array, point_grid, levels=range(-50, 100), cmap=plt.cm.jet)
     geojson = geojsoncontour.contourf_to_geojson(
         contourf=contourf,
         ndigits=3,
-        unit='m',
+        unit='nT',
     )
     return geojson
 
-# обработка встроенная
-def get_griddata(new_lon_array, new_lat_array, point_grid):
+# обработка с помощью griddata
+def get_griddata(lon, lat, point_grid):
+    point_grid = point_grid.reshape(len(lon), len(lat))
+    lat, lon = np.meshgrid(lat, lon)
 
-    lon_array, lat_array = np.meshgrid(new_lon_array, new_lat_array)
-    point_grid, lon_array, lat_array = delete_nans(point_grid, lon_array, lat_array)
-    new_point_grid = griddata((lon_array, lat_array), point_grid, (new_lon_array[None,:], new_lat_array[:,None]), method='linear')
+    new_lat, new_lon = np.meshgrid(np.linspace(lat[0], lat[-1], len(lat)*2), np.linspace(lon[0], lon[-1], len(lon)*2))
+    xi=(new_lat, new_lon)
+    points=np.array([lat.ravel(), lon.ravel()]).T
+    values=point_grid.ravel()
 
-    return new_lon_array, new_lat_array, new_point_grid
+    res = griddata(points, values, xi, method='linear')
 
-# обработка с помощью сплайна
-def get_spline(new_lon_array, new_lat_array, point_grid):
+    return new_lon, new_lat, res
 
-    lon_array, lat_array = np.meshgrid(new_lon_array, new_lat_array)
-    point_grid, lon_array, lat_array = delete_nans(point_grid, lon_array, lat_array)
 
-    f = SmoothBivariateSpline(lon_array, lat_array, point_grid, kx=1, ky=1)
-    new_point_grid = np.transpose(f(new_lon_array, new_lat_array))
+# обработка rfb
+def get_rfb(lon, lat, point_grid):
+    point_grid = point_grid.reshape(len(lon), len(lat))
+    new_lat = np.linspace(lat[0], lat[-1], len(lat)*2)
+    new_lon = np.linspace(lon[0], lon[-1], len(lon)*2)
+    lat, lon = np.meshgrid(lat, lon)
 
-    return new_lon_array, new_lat_array, new_point_grid
+    inter_func = Rbf(lat, lon, point_grid, function='linear', smooth=0)
 
-# обработка пандасом
-def get_by_pandas(lon_array, lat_array, point_grid):
-    df = pd.DataFrame(data=point_grid, index=lat_array, columns=lon_array, dtype=float)
-    df = df.interpolate(method='pad', axis=1, limit_direction='forward')
-    df = df.dropna(axis=0, how='all')
-    df = df.dropna(axis=1, how='all')
-    df = df.interpolate(method='pad', axis=0, limit_direction='forward')
-    lat_array = df.index
-    lon_array = df.columns
-    point_grid = df.to_numpy()
+    new_lat, new_lon = np.meshgrid(new_lat, new_lon) 
+    res = inter_func(new_lat, new_lon)
 
-    return lon_array, lat_array, point_grid
+    return new_lon, new_lat, res
 
 # получение обработанных массивов
 def get_processed_data(lon_array, lat_array, point_grid, method):
     if method == 'griddata':
         return get_griddata(lon_array, lat_array, point_grid)
-    elif method == 'spline':
-        return get_spline(lon_array, lat_array, point_grid)
-    else:
-        return get_by_pandas(lon_array, lat_array, point_grid)
+    elif method == 'rfb':
+        return get_rfb(lon_array, lat_array, point_grid)
 
 # создание графика
 def set_plot(data, type):
@@ -134,7 +120,7 @@ def update():
         coordinates = [extent.lat1, extent.lat2, extent.lng1, extent.lng2]
         coordinates = map(float, coordinates)
         lon_array, lat_array, point_grid = prepare_table(*coordinates)
-        for method in ['griddata', 'spline', 'pandas']:
+        for method in ['griddata', 'rbf']:
             data = get_processed_data(lon_array, lat_array, point_grid, method)
             for type in ['isolines', 'heatmap']:
                 plot = set_plot(data, type)
@@ -149,3 +135,14 @@ def my_custom_sql(self):
         row = cursor.fetchone()
 
     return row
+
+
+# удаление None значений
+def delete_nans(point_grid, lon_array, lat_array):
+    point_grid = point_grid.ravel()
+    lon_array = lon_array.ravel()
+    lat_array = lat_array.ravel()
+    lon_array = np.asarray(lon_array[point_grid!=np.isnan])
+    lat_array = np.asarray(lat_array[point_grid!=np.isnan])
+    point_grid = np.asarray(point_grid[point_grid!=np.isnan])
+    return point_grid, lon_array, lat_array

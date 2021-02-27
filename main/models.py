@@ -32,7 +32,7 @@ class Extent(models.Model):
 
 class Plot(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
-    value = models.fields.TextField()
+    value = models.fields.BinaryField()
     date = models.DateTimeField(default=django.utils.timezone.now)
     type = models.fields.CharField(max_length=50)
     interpolation_type = models.fields.CharField(max_length=50)

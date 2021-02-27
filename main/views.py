@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotFound
 from .models import Measurement, Plot
 import datetime
 import json
@@ -19,7 +19,10 @@ def get_plot(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         plot = list(Plot.objects.order_by('date').reverse().filter(type=data['type'], interpolation_type=data['method'], Extent_id=1))
-    return HttpResponse(plot[0].value)            
+        if len(plot) and plot[0]:
+            return HttpResponse(plot[0].value)
+        else:
+            return HttpResponseNotFound()        
 
 
 def marker(request):

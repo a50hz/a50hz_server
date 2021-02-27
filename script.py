@@ -36,7 +36,7 @@ def get_data(lat1, lat2, lng1, lng2, step):
 
 # первоначальное создание неообходимых для обработки массивов
 def prepare_table(lat1, lat2, lng1, lng2):
-    step = max((lat2-lat1)/128, (lng2-lng1)/128)
+    step = max((lat2-lat1)/50, (lng2-lng1)/50)
     area = step / 2
     
     lat_array = np.asarray([round(i,6) for i in np.arange(lat1,lat2,step)]) #ширина 
@@ -63,7 +63,7 @@ def make_isolines(lon_array, lat_array, point_grid):
 def make_heatmap(lon_array, lat_array, point_grid): 
     figure = plt.figure()
     ax = figure.add_subplot(111)
-    contourf = ax.contourf(lon_array, lat_array, point_grid, levels=range(-50, 100), cmap=plt.cm.jet)
+    contourf = ax.contourf(lon_array, lat_array, point_grid, levels=range(-50, 101), cmap=plt.cm.jet)
     geojson = geojsoncontour.contourf_to_geojson(
         contourf=contourf,
         ndigits=3,
@@ -87,7 +87,7 @@ def get_griddata(lon, lat, point_grid):
 
 
 # обработка rfb
-def get_rfb(lon, lat, point_grid):
+def get_rbf(lon, lat, point_grid):
     point_grid = point_grid.reshape(len(lon), len(lat))
     new_lat = np.linspace(lat[0], lat[-1], len(lat)*2)
     new_lon = np.linspace(lon[0], lon[-1], len(lon)*2)
@@ -97,19 +97,18 @@ def get_rfb(lon, lat, point_grid):
 
     new_lat, new_lon = np.meshgrid(new_lat, new_lon) 
     res = inter_func(new_lat, new_lon)
-
     return new_lon, new_lat, res
 
 # получение обработанных массивов
 def get_processed_data(lon_array, lat_array, point_grid, method):
     if method == 'griddata':
         return get_griddata(lon_array, lat_array, point_grid)
-    elif method == 'rfb':
-        return get_rfb(lon_array, lat_array, point_grid)
+    elif method == 'rbf':
+        return get_rbf(lon_array, lat_array, point_grid)
 
 # создание графика
-def set_plot(data, type):
-    if type == 'isolines':
+def set_plot(data, kind):
+    if kind == 'isolines':
         return make_isolines(*data)
     else:
         return make_heatmap(*data)
@@ -122,9 +121,9 @@ def update():
         lon_array, lat_array, point_grid = prepare_table(*coordinates)
         for method in ['griddata', 'rbf']:
             data = get_processed_data(lon_array, lat_array, point_grid, method)
-            for type in ['isolines', 'heatmap']:
-                plot = set_plot(data, type)
-                result = Plot(value=plot, type=type, interpolation_type=method, Extent=extent)
+            for kind in ['isolines', 'heatmap']:
+                plot = set_plot(data, kind)
+                result = Plot(value=bytearray(plot, 'utf-8'), type=kind, interpolation_type=method, Extent=extent)
                 result.save()   
     
 

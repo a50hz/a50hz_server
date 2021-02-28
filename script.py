@@ -1,5 +1,7 @@
 import numpy as np
-import matplotlib.pyplot as plt 
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import geojsoncontour
 import pandas as pd
 from django.db import connection
@@ -36,7 +38,7 @@ def get_data(lat1, lat2, lng1, lng2, step):
 
 # первоначальное создание неообходимых для обработки массивов
 def prepare_table(lat1, lat2, lng1, lng2):
-    step = max((lat2-lat1)/50, (lng2-lng1)/50)
+    step = max((lat2-lat1)/128, (lng2-lng1)/128)
     area = step / 2
     
     lat_array = np.asarray([round(i,6) for i in np.arange(lat1,lat2,step)]) #ширина 
@@ -51,7 +53,7 @@ def prepare_table(lat1, lat2, lng1, lng2):
 def make_isolines(lon_array, lat_array, point_grid):
     figure = plt.figure()
     ax = figure.add_subplot(111)
-    contour = ax.contour(lon_array, lat_array, point_grid, levels=range(-50, 101), cmap=plt.cm.jet)
+    contour = ax.contour(lon_array, lat_array, point_grid, levels=range(-40, 101), cmap=plt.cm.jet)
     geojson = geojsoncontour.contour_to_geojson(
         contour=contour,
         ndigits=3,
@@ -63,7 +65,7 @@ def make_isolines(lon_array, lat_array, point_grid):
 def make_heatmap(lon_array, lat_array, point_grid): 
     figure = plt.figure()
     ax = figure.add_subplot(111)
-    contourf = ax.contourf(lon_array, lat_array, point_grid, levels=range(-50, 101), cmap=plt.cm.jet)
+    contourf = ax.contourf(lon_array, lat_array, point_grid, levels=range(-40, 101), cmap=plt.cm.jet)
     geojson = geojsoncontour.contourf_to_geojson(
         contourf=contourf,
         ndigits=3,
@@ -74,7 +76,7 @@ def make_heatmap(lon_array, lat_array, point_grid):
 # обработка с помощью griddata
 def get_griddata(lon, lat, point_grid):
     point_grid = point_grid.reshape(len(lon), len(lat))
-    lat, lon = np.meshgrid(lat, lon)
+    lon, lat = np.meshgrid(lon, lat)
 
     new_lat, new_lon = np.meshgrid(np.linspace(lat[0], lat[-1], len(lat)*2), np.linspace(lon[0], lon[-1], len(lon)*2))
     xi=(new_lat, new_lon)
@@ -88,10 +90,10 @@ def get_griddata(lon, lat, point_grid):
 
 # обработка rfb
 def get_rbf(lon, lat, point_grid):
-    point_grid = point_grid.reshape(len(lon), len(lat))
+    point_grid = point_grid.reshape(len(lat), len(lon))
     new_lat = np.linspace(lat[0], lat[-1], len(lat)*2)
     new_lon = np.linspace(lon[0], lon[-1], len(lon)*2)
-    lat, lon = np.meshgrid(lat, lon)
+    lon, lat = np.meshgrid(lon, lat) # не трожь, ебанёт
 
     inter_func = Rbf(lat, lon, point_grid, function='linear', smooth=0)
 
@@ -122,9 +124,9 @@ def update():
         for method in ['griddata', 'rbf']:
             data = get_processed_data(lon_array, lat_array, point_grid, method)
             for kind in ['isolines', 'heatmap']:
-                plot = set_plot(data, kind)
-                result = Plot(value=bytearray(plot, 'utf-8'), type=kind, interpolation_type=method, Extent=extent)
-                result.save()   
+                plot = bytearray(set_plot(data, kind), 'utf-8')
+                result = Plot.objects.create(value=plot, type=kind, interpolation_type=method, Extent=extent)  
+                print("Plot added!")
     
 
 # для запросов через sql

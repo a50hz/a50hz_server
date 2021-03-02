@@ -3,15 +3,15 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import geojsoncontour
-import pandas as pd
+import math
 from django.db import connection
-from scipy.interpolate import interp2d
 from scipy.interpolate.ndgriddata import griddata
 from main.models import Extent, Measurement, Plot
 from numba import jit, prange
-from scipy.interpolate import SmoothBivariateSpline
 from scipy.interpolate import Rbf
 
+
+levels = range(0, 41)
 # заполнение сетки значениями точек
 @jit(fastmath=True, parallel=True, nopython=True)
 def fill_grid(grid, data, lon_array, lat_array, area):
@@ -24,9 +24,12 @@ def fill_grid(grid, data, lon_array, lat_array, area):
                     sum = sum + k[0]
                     n = n + 1
             if n!=0:
-                grid[i][j] = (sum // n) - 50
+                if (sum // n) < 110:
+                    grid[i][j] = math.ceil((sum / (2.5 * n)) - 4)
+                else:
+                    grid[i][j] = 40
             else:
-                grid[i][j] = 0
+                grid[i][j] = 16
     return grid
 
 
@@ -53,7 +56,7 @@ def prepare_table(lat1, lat2, lng1, lng2):
 def make_isolines(lon_array, lat_array, point_grid):
     figure = plt.figure()
     ax = figure.add_subplot(111)
-    contour = ax.contour(lon_array, lat_array, point_grid, levels=range(-40, 101), cmap=plt.cm.jet)
+    contour = ax.contour(lon_array, lat_array, point_grid, levels=levels, cmap=plt.cm.jet)
     geojson = geojsoncontour.contour_to_geojson(
         contour=contour,
         ndigits=3,
@@ -65,7 +68,7 @@ def make_isolines(lon_array, lat_array, point_grid):
 def make_heatmap(lon_array, lat_array, point_grid): 
     figure = plt.figure()
     ax = figure.add_subplot(111)
-    contourf = ax.contourf(lon_array, lat_array, point_grid, levels=range(-40, 101), cmap=plt.cm.jet)
+    contourf = ax.contourf(lon_array, lat_array, point_grid, levels=levels, cmap=plt.cm.jet)
     geojson = geojsoncontour.contourf_to_geojson(
         contourf=contourf,
         ndigits=3,

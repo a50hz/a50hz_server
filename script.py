@@ -12,6 +12,7 @@ from scipy.interpolate import Rbf
 
 
 levels = range(0, 41)
+resolution = 25
 # заполнение сетки значениями точек
 @jit(fastmath=True, parallel=True, nopython=True)
 def fill_grid(grid, data, lon_array, lat_array, area):
@@ -41,7 +42,7 @@ def get_data(lat1, lat2, lng1, lng2, step):
 
 # первоначальное создание неообходимых для обработки массивов
 def prepare_table(lat1, lat2, lng1, lng2):
-    step = max((lat2-lat1)/128, (lng2-lng1)/128)
+    step = max((lat2-lat1)/resolution, (lng2-lng1)/resolution)
     area = step / 2
     
     lat_array = np.asarray([round(i,6) for i in np.arange(lat1,lat2,step)]) #ширина 

@@ -12,7 +12,8 @@ from scipy.interpolate import Rbf
 
 
 levels = range(0, 41)
-resolution = 25
+resolution = 50
+mul = 1
 # заполнение сетки значениями точек
 @jit(fastmath=True, parallel=True, nopython=True)
 def fill_grid(grid, data, lon_array, lat_array, area):
@@ -82,7 +83,7 @@ def get_griddata(lon, lat, point_grid):
     point_grid = point_grid.reshape(len(lon), len(lat))
     lon, lat = np.meshgrid(lon, lat)
 
-    new_lat, new_lon = np.meshgrid(np.linspace(lat[0], lat[-1], len(lat)*2), np.linspace(lon[0], lon[-1], len(lon)*2))
+    new_lat, new_lon = np.meshgrid(np.linspace(lat[0], lat[-1], len(lat)*mul), np.linspace(lon[0], lon[-1], len(lon)*mul))
     xi=(new_lat, new_lon)
     points=np.array([lat.ravel(), lon.ravel()]).T
     values=point_grid.ravel()
@@ -95,8 +96,8 @@ def get_griddata(lon, lat, point_grid):
 # обработка rfb
 def get_rbf(lon, lat, point_grid):
     point_grid = point_grid.reshape(len(lat), len(lon))
-    new_lat = np.linspace(lat[0], lat[-1], len(lat)*2)
-    new_lon = np.linspace(lon[0], lon[-1], len(lon)*2)
+    new_lat = np.linspace(lat[0], lat[-1], len(lat)*mul)
+    new_lon = np.linspace(lon[0], lon[-1], len(lon)*mul)
     lon, lat = np.meshgrid(lon, lat) # не трожь, ебанёт
 
     inter_func = Rbf(lat, lon, point_grid, function='linear', smooth=0)

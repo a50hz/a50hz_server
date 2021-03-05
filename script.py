@@ -130,7 +130,7 @@ def update():
             data = get_processed_data(lon_array, lat_array, point_grid, method)
             for kind in ['isolines', 'heatmap']:
                 plot = bytearray(set_plot(data, kind), 'utf-8')
-                result = Plot.objects.create(value=plot, type=kind, interpolation_type=method, Extent=extent)  
+                result = Plot.objects.create(value=plot, kind=kind, interpolation_type=method, Extent=extent)  
                 print("Plot added!")
     
 

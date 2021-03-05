@@ -18,7 +18,7 @@ def index(request):
 def get_plot(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        plot = Plot.objects.order_by('date').reverse().filter(type=data['type'], interpolation_type=data['method'], Extent_id=1)[:1]
+        plot = Plot.objects.order_by('date').reverse().filter(kind=data['type'], interpolation_type=data['method'], Extent_id=1)[:1]
         if plot:
             return HttpResponse(plot[0].value)
         else:

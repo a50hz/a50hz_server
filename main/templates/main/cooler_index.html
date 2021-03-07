@@ -1,0 +1,133 @@
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>GeoMagScan</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css"
+        integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ=="
+        crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"
+        integrity="sha512-/Nsx9X4HebavoBvEBuyp3I7od5tA0UzAxs+j83KgC8PU0kgB4XiK4Lfe4y4cgBtaRJQEIFCW+oC506aPT2L1zw=="
+        crossorigin=""></script>
+    <link rel="stylesheet" href="/static/css/style1.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+        crossorigin="anonymous"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <script src="/static/js/zone_scripts.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"></script>
+</head>
+
+<body>
+    <div class="page-container">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">
+                    <img src="/static/assets/svg/icon.svg" alt="" width="30" height="30"
+                        class="d-inline-block align-top">
+                    GeoMagScan
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse buttons-right nav" id="navbarSupportedContent">
+                    <ul class="navbar-nav mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="upload()">Upload changes in zones</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="isolinesDropdown" role="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                Build isolines
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <div id="map"></div>
+    </div>
+    <script>
+        var OSMUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        var osm = L.tileLayer(OSMUrl, { id: 'mapbox/streets-v11', tileSize: 512, zoomOffset: -1 });
+
+        var map = L.map('map', {
+            center: [54.779285910582296, 56.07228095554424],
+            zoomSnap: 0.025,
+            zoom: 11.5,
+            preferCanvas: true
+        })
+        Zones = []
+        ZoneLayers = L.featureGroup().addTo(map);
+        get_zones();
+        MarkerLayers = new L.layerGroup();
+        get_markers();
+
+        L.control.layers({
+            'osm': osm.addTo(map),
+            "google": L.tileLayer('http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}', {
+                attribution: 'google'
+            })
+        }, { 'markers': MarkerLayers, 'zones': ZoneLayers }, { position: 'topleft', collapsed: false }).addTo(map);
+
+        map.addControl(new L.Control.Draw({
+            edit: {
+                featureGroup: ZoneLayers,
+            },
+            draw: {
+                marker: false,
+                polygon: false,
+                circle: false,
+                polyline: false
+            }
+        }));
+        let free_negative_id = -1
+        map.on(L.Draw.Event.CREATED, function (event) {
+            name = window.prompt("Write name of new zone", "");
+            var layer = event.layer.bindPopup(`name: ${name}`);
+            ZoneLayers.addLayer(layer);
+            layer.database_id = free_negative_id;
+            lbp = layer._latlngs[0][0] //left bottom point
+            rtp = layer._latlngs[0][2] //right top point
+            Zones.push({ "id": free_negative_id--, "name": name, "lat1": lbp.lat, "lng1": lbp.lng, "lat2": rtp.lat, "lng2": rtp.lng, "status": "created" })
+        });
+
+        map.on(L.Draw.Event.DELETED, function (event) {
+            layers = event.layers._layers
+            for (key in layers) {
+                const index = Zones.findIndex(obj => obj.id == layers[key].database_id)
+                if (layers[key]['database_id'] < 0) {
+                    Zones.splice(index, 1)
+                } else {
+                    Zones[index] = layers[key].database_id
+                }
+            }
+        })
+
+        map.on(L.Draw.Event.EDITED, function (event) {
+            layers = event.layers._layers
+            for (key in layers) {
+                const index = Zones.findIndex(obj => obj.id == layers[key].database_id)
+                Zones[index]['lat1'] = layers[key]._latlngs[0][0].lat
+                Zones[index]['lng1'] = layers[key]._latlngs[0][0].lng
+                Zones[index]['lat2'] = layers[key]._latlngs[0][2].lat
+                Zones[index]['lng2'] = layers[key]._latlngs[0][2].lng
+                if (layers[key]['database_id'] > 0) {
+                    Zones[index]['status'] = 'modified'
+                }
+            }
+        })
+
+    </script>
+</body>
+
+</html>

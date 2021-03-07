@@ -31,7 +31,7 @@ function set_layer(GeoData){
 }
 
 async function get_markers(){
-    let response = await fetch('marker');
+    let response = await fetch('measurements');
     if (response.ok) {
         let json = await response.json();
         set_markers(json);

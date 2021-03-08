@@ -51,14 +51,39 @@ def zones(request):
                     ResearchZone.objects.create(**i)
                 elif i['status'] == 'modified':
                     entry = ResearchZone.objects.get(id=i['id'])
-                    for field in ['lat1', 'lng1', 'lat2', 'lng2']:
-                        setattr(entry, field, i[field])
+                    entry.lat1 = i['lat1']
+                    entry.lng1 = i['lng1']
+                    entry.lat2 = i['lat2']
+                    entry.lng2 = i['lng2']
                     entry.save()
                 else:
                     pass
             else:
                 pass
         return HttpResponse("Изменения зон внесены в базу")
+
+
+def zone(request):
+    if request.method == 'POST':
+        id = json.loads(request.body)['id']
+        res = list(ResearchZone.objects.filter(id=id).values('name', 'lat1', 'lng1', 'lat2', 'lng2'))[0]
+        for j in ['lat1', 'lng1', 'lat2', 'lng2']:
+            res[j] = float(res[j])
+        return HttpResponse(json.dumps(res))
+    else:
+        return HttpResponse("Некорректный запрос!")
+
+
+def points(request):
+    if request.method == 'POST':
+        id = json.loads(request.body)['id']
+        zone = list(ResearchZone.objects.filter(id=id).values('lat1', 'lng1', 'lat2', 'lng2'))[0]
+        points = list(Measurement.objects.filter(longitude__gte=zone["lng1"], longitude__lte=zone["lng2"], latitude__gte=zone["lat1"], latitude__lte=zone["lat2"]).values('latitude', 'longitude'))
+        for i in range(len(points)):
+            points[i] = list(map(float, points[i].values()))
+        return HttpResponse(json.dumps(points))
+    else:
+        return HttpResponse("Некорректный запрос!")
 
 
 def about(request):

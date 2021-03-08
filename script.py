@@ -37,7 +37,7 @@ def fill_grid(grid, data, lon_array, lat_array, area):
 
 # получение точек по экстенту
 def get_data(lat1, lat2, lng1, lng2, step):
-    Measurements = list(Measurement.objects.filter(longitude__gte= lng1 - step, longitude__lte= lng2 + step, latitude__gte= lat1 - step, latitude__lte= lat2 + step))
+    Measurements = list(Measurement.objects.filter(longitude__gte= lng1 - step, longitude__lte= lng2 + step, latitude__gte= lat1 - step, latitude__lte= lat2 + step)).values('data', 'latitude', 'longitude')
     data = np.asarray([[int(i.data), float(i.longitude), float(i.latitude)]  for i in Measurements])
     return data
 

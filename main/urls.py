@@ -8,7 +8,7 @@ urlpatterns = [
     path('admin_zone', views.cooler_index),
     path('plot', views.get_plot),
     path('measurements', views.data),
-    path('zone', views.zone),
+    path('zone/<int:id>', views.zone),
     path('points', views.points),
     path('zones', views.zones),
     path('privacy', views.privacy),

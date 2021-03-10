@@ -33,7 +33,8 @@ def get_plot(request):
 
 def zones(request):
     if request.method == 'GET':
-        res = list(ResearchZone.objects.all().values('id', 'name', 'lat1', 'lng1', 'lat2', 'lng2'))
+        res = list(ResearchZone.objects.all().values(
+            'id', 'name', 'lat1', 'lng1', 'lat2', 'lng2'))
         for i in range(len(res)):
             for j in ['lat1', 'lng1', 'lat2', 'lng2']:
                 res[i][j] = float(res[i][j])
@@ -63,22 +64,27 @@ def zones(request):
         return HttpResponse("Изменения зон внесены в базу")
 
 
-def zone(request):
-    if request.method == 'POST':
-        id = json.loads(request.body)['id']
-        res = list(ResearchZone.objects.filter(id=id).values('name', 'lat1', 'lng1', 'lat2', 'lng2'))[0]
+def zone(request, id):
+    if request.method == 'GET':
+        res = list(ResearchZone.objects.filter(id=id).values(
+            'name', 'lat1', 'lng1', 'lat2', 'lng2'))[0]
         for j in ['lat1', 'lng1', 'lat2', 'lng2']:
             res[j] = float(res[j])
+        res['points'] = [[res['lat1'], res['lng1']], [res['lat1'], res['lng2']], [res['lat2'], res['lng2']],[res['lat2'], res['lng1']]]
+        for i in ['lat1', 'lng1', 'lat2', 'lng2']:
+            res.pop(i)
         return HttpResponse(json.dumps(res))
     else:
         return HttpResponse("Некорректный запрос!")
 
 
 def points(request):
-    if request.method == 'POST':
-        id = json.loads(request.body)['id']
-        zone = list(ResearchZone.objects.filter(id=id).values('lat1', 'lng1', 'lat2', 'lng2'))[0]
-        points = list(Measurement.objects.filter(longitude__gte=zone["lng1"], longitude__lte=zone["lng2"], latitude__gte=zone["lat1"], latitude__lte=zone["lat2"]).values('latitude', 'longitude'))
+    if request.method == 'GET':
+        id = request.GET.get('zoneId')
+        zone = list(ResearchZone.objects.filter(
+            id=id).values('lat1', 'lng1', 'lat2', 'lng2'))[0]
+        points = list(Measurement.objects.filter(longitude__gte=zone["lng1"], longitude__lte=zone["lng2"],
+                                                 latitude__gte=zone["lat1"], latitude__lte=zone["lat2"]).values('latitude', 'longitude'))
         for i in range(len(points)):
             points[i] = list(map(float, points[i].values()))
         return HttpResponse(json.dumps(points))
@@ -113,7 +119,8 @@ def data(request):
             row.save()
             return HttpResponse("Добавлено новое измерение")
     elif request.method == 'GET':
-        res = list(Measurement.objects.all().values('latitude', 'longitude','data'))
+        res = list(Measurement.objects.all().values(
+            'latitude', 'longitude', 'data'))
         for i in range(len(res)):
             res[i] = list(map(float, res[i].values()))
         return HttpResponse(json.dumps(res))

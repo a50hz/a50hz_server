@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Выбор зоны</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+</head>
+
+<body>
+    <a id="url">Откройте ссылку в приложении GeoMagScan: </a>
+    <p id="id">Вы также можете вбить выбранный ID самостоятельно: </p>
+    <script>
+        url = document.getElementById('url')
+        current_url = document.URL
+        url.innerHTML += current_url
+
+        id = document.getElementById('id')
+        id.innerHTML += document.URL.slice(current_url.lastIndexOf('=')+1)
+    </script>
+</body>
+
+</html>

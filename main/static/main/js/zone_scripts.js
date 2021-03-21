@@ -50,6 +50,7 @@ async function upload() {
             Zones.splice(index, 1)
         }
     }
+    Zones.push(window.prompt("Enter password to confirm changes", ""));
     let response = await fetch('zones', {
         method: 'POST',
         headers: {
@@ -63,4 +64,5 @@ async function upload() {
     } else {
         alert("Ошибка HTTP: " + response.status);
     }
+    document.location.reload();
 }

@@ -42,6 +42,8 @@ def zones(request):
         return HttpResponse(json.dumps(res))
     elif request.method == "POST":
         data = json.loads(request.body)
+        if data[-1] != '11&(&*zD7K5TpJlZ':
+            return HttpResponse("Пароль не верный")
         for i in data:
             if type(i) is int:
                 ResearchZone.objects.filter(id=i).delete()
@@ -70,12 +72,17 @@ def zone(request, id):
             'name', 'lat1', 'lng1', 'lat2', 'lng2'))[0]
         for j in ['lat1', 'lng1', 'lat2', 'lng2']:
             res[j] = float(res[j])
-        res['points'] = [[res['lat1'], res['lng1']], [res['lat1'], res['lng2']], [res['lat2'], res['lng2']],[res['lat2'], res['lng1']]]
+        res['points'] = [[res['lat1'], res['lng1']], [res['lat1'], res['lng2']],
+                         [res['lat2'], res['lng2']], [res['lat2'], res['lng1']]]
         for i in ['lat1', 'lng1', 'lat2', 'lng2']:
             res.pop(i)
         return HttpResponse(json.dumps(res))
     else:
         return HttpResponse("Некорректный запрос!")
+
+
+def apply_zone(request):
+    return render(request, 'main/zone.html')
 
 
 def points(request):

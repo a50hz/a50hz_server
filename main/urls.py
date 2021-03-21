@@ -9,6 +9,7 @@ urlpatterns = [
     path('plot', views.get_plot),
     path('measurements', views.data),
     path('zone/<int:id>', views.zone),
+    path('apply-zone', views.apply_zone),
     path('points', views.points),
     path('zones', views.zones),
     path('privacy', views.privacy),

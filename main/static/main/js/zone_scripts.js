@@ -37,7 +37,7 @@ function set_zones(Data) {
         Zones.push(...Data)
         Data.forEach(el => {
             bounds = [[el['lat1'], el['lng1']], [el['lat2'], el['lng2']]];
-            zone = L.rectangle(bounds, { color: "#ff0000", weight: 2 }).bindPopup(`name: ${el['name']}`);
+            zone = L.rectangle(bounds, { color: "#ff0000", weight: 2 }).bindPopup(`name: ${el['name']}`  + ` https://gms.myxomopx.ru/apply-zone?id=${el['id']}`);
             ZoneLayers.addLayer(zone)
             zone.database_id = el['id']
         })

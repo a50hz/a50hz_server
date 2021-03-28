@@ -12,7 +12,7 @@ import matplotlib
 matplotlib.use('Agg')
 
 
-levels = np.asarray([10, 11, 12.5, 15, 25, 37.5, 52.5, 90, 110])
+levels = np.asarray([10, 11, 13, 14.5, 16, 18, 20, 22.5, 27.5, 35, 45, 57.5, 72.5, 90, 110])
 resolution = 50
 mul = 1
 color_map = mcol.LinearSegmentedColormap.from_list("MyCmapName",["b", "y", "r"])

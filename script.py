@@ -1,24 +1,26 @@
 from scipy.interpolate import Rbf
-from numba import jit, prange
+from numba import jit, prange, typed
 from main.models import Extent, Measurement, Plot
 from scipy.interpolate.ndgriddata import griddata
 from django.db import connection
 import math
 import geojsoncontour
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcol
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 
 
-levels = range(0, 41)
+levels = np.asarray([10, 11, 12.5, 15, 25, 37.5, 52.5, 90, 110])
 resolution = 50
 mul = 1
+color_map = mcol.LinearSegmentedColormap.from_list("MyCmapName",["b", "y", "r"])
 # заполнение сетки значениями точек
 
 
 @jit(fastmath=True, parallel=True, nopython=True)
-def fill_grid(grid, data, lon_array, lat_array, area):
+def fill_grid(grid, data, lon_array, lat_array, area, levels = levels):
     for i in prange(len(grid)):
         for j in prange(len(grid[i])):
             sum = 0.0
@@ -28,12 +30,14 @@ def fill_grid(grid, data, lon_array, lat_array, area):
                     sum = sum + k[0]
                     n = n + 1
             if n != 0:
-                if (sum // n) < 110:
-                    grid[i][j] = math.ceil((sum / (2.5 * n)) - 4)
-                else:
-                    grid[i][j] = 40
+                res = sum // n
+                lev = 0
+                while res >= levels[lev]:
+                    res = levels[lev]
+                    lev += 1
+                griddata = levels[lev]
             else:
-                grid[i][j] = 16
+                grid[i][j] = 50
     return grid
 
 
@@ -65,7 +69,7 @@ def prepare_table(lat1, lat2, lng1, lng2):
 def make_isolines(lon_array, lat_array, point_grid):
     figure = plt.figure()
     ax = figure.add_subplot(111)
-    contour = ax.contour(lon_array, lat_array, point_grid, levels=levels, cmap=plt.cm.jet)
+    contour = ax.contour(lon_array, lat_array, point_grid, levels=levels, cmap=color_map)
     geojson = geojsoncontour.contour_to_geojson(
         contour=contour,
         ndigits=3,
@@ -79,7 +83,7 @@ def make_isolines(lon_array, lat_array, point_grid):
 def make_heatmap(lon_array, lat_array, point_grid):
     figure = plt.figure()
     ax = figure.add_subplot(111)
-    contourf = ax.contourf(lon_array, lat_array, point_grid, levels=levels, cmap=plt.cm.jet)
+    contourf = ax.contourf(lon_array, lat_array, point_grid, levels=levels, cmap=color_map)
     geojson = geojsoncontour.contourf_to_geojson(
         contourf=contourf,
         ndigits=3,

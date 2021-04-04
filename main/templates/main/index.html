@@ -20,7 +20,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+  <script src="/static/js/leaflet-heat.js"></script>
   <script src="/static/js/scripts.js"></script>
 </head>
 
@@ -39,7 +39,10 @@
         <div class="collapse navbar-collapse buttons-right nav" id="navbarSupportedContent">
           <ul class="navbar-nav mb-2 mb-lg-0">
             <li class="nav-item">
-              <a class="nav-link" href="#" onclick="get_markers()">Show/Hide measurements points</a>
+              <a class="nav-link" href="#" onclick="show_markers()">Show/Hide measurements points</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" onclick="show_markers_heatmap()">Show/Hide heatmap of points</a>
             </li>
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" id="isolinesDropdown" role="button" data-bs-toggle="dropdown"
@@ -52,10 +55,21 @@
                 <li><a class="dropdown-item" href="#" onclick="get_plot('isolines', 'rbf')">RFB Интерполяция</a></li>
               </ul>
             </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="isolinesDropdown" role="button" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Build heatmap
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="isolinesDropdown">
+                <li><a class="dropdown-item" href="#" onclick="show_heat_grid('griddata')">Griddata
+                    интерполяция</a></li>
+                <li><a class="dropdown-item" href="#" onclick="show_heat_grid('rbf')">RFB Интерполяция</a></li>
+              </ul>
+            </li>
             <li class="nav-item dropdown" style="width: 228px;">
               <a class="nav-link dropdown-toggle" href="#" id="heatmapDropdown" role="button" data-bs-toggle="dropdown"
                 aria-expanded="false">
-                Build heatmap
+                Build countourF
               </a>
               <ul class="dropdown-menu" aria-labelledby="heatmapDropdown">
                 <li><a class="dropdown-item" href="#" onclick="get_plot('heatmap', 'griddata')">Griddata
@@ -82,8 +96,9 @@
     GeoJSONLayers.addTo(map);
 
     var MarkerLayers = new L.layerGroup();
-    map.addLayer(MarkerLayers);
-
+    var heat_markers, heat_grid_griddata, heat_grid_rbf;
+    get_markers();
+    get_grids();
     const obj2Url = (data) => Object.keys(data).map(function (k) {
       return encodeURIComponent(k) + '=' + encodeURIComponent(data[k])
     }).join('&')

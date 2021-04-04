@@ -11,6 +11,7 @@ urlpatterns = [
     path('zone/<int:id>', views.zone),
     path('apply-zone', views.apply_zone),
     path('points', views.points),
+    path('grid', views.get_grid),
     path('zones', views.zones),
     path('privacy', views.privacy),
     path('about', views.about)

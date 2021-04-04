@@ -15,7 +15,7 @@ matplotlib.use("Agg")
 
 levels = np.asarray([1, 3, 6, 10, 15, 21, 28, 36, 45, 55])
 resolution = 50
-mul = 2
+mul = 1
 color_map = mcol.LinearSegmentedColormap.from_list(
     "MyCmapName",
     [
@@ -171,6 +171,14 @@ def update():
                 print("Plot added!")
 
 
+# получение интерполированной сетки из точек
+def grid(method):
+    extent = Extent.objects.get(id=1)
+    coordinates = [extent.lat1, extent.lat2, extent.lng1, extent.lng2]
+    coordinates = map(float, coordinates)
+    res = get_processed_data(*prepare_table(*coordinates), method)
+    return res
+        
 # для запросов через sql
 def my_custom_sql(self):
     with connection.cursor() as cursor:

@@ -1,4 +1,47 @@
-async function get_plot(type, method){
+async function get_markers() {
+    let response = await fetch('measurements');
+    if (response.ok) {
+        let json = await response.json();
+        set_markers(json);
+        set_markers_heatmap(json);
+    } else {
+        alert("Ошибка HTTP: " + response.status);
+    }
+}
+
+function set_markers(Data) {
+    Data.forEach(element => {
+        marker = L.circleMarker([element[0], element[1]], { radius: 5 }).bindPopup(element[2].toString());
+        MarkerLayers.addLayer(marker);
+    })
+}
+
+function set_markers_heatmap(Data) {
+    for (i in Data) {
+        Data[i] = [Data[i][0], Data[i][1], Math.abs(Data[i][2] - 50) / 55]
+    }
+    heat_markers = L.heatLayer(Data, { radius: 25 });
+}
+
+function show_markers() {
+    if (map.hasLayer(MarkerLayers)) {
+        map.removeLayer(MarkerLayers);
+    }
+    else {
+        map.addLayer(MarkerLayers);
+    }
+}
+
+function show_markers_heatmap() {
+    if (map.hasLayer(heat_markers)) {
+        map.removeLayer(heat_markers);
+    }
+    else {
+        map.addLayer(heat_markers);
+    }
+}
+
+async function get_plot(type, method) {
     let extent = {
         type: type,
         method: method
@@ -18,41 +61,52 @@ async function get_plot(type, method){
     }
 }
 
-function set_layer(GeoData){
-    if (GeoJSONLayers.length != 0){
+function set_layer(GeoData) {
+    if (GeoJSONLayers.length != 0) {
         GeoJSONLayers.clearLayers();
     }
     var GeoLayer = L.geoJSON()
     GeoLayer.addData(GeoData)
-    for (i in GeoLayer._layers){
+    for (i in GeoLayer._layers) {
         GeoLayer._layers[i].options.color = GeoLayer._layers[i].feature.properties.stroke
         if (GeoLayer._layers[i].feature.geometry.type == "MultiPolygon") {
             //GeoLayer._layers[i].bindPopup(GeoLayer._layers[i].feature.properties.title)
         } else {
             GeoLayer._layers[i].bindPopup(GeoLayer._layers[i].feature.properties["level-value"].toString())
         }
-        
+
     }
     GeoJSONLayers.addLayer(GeoLayer);
 }
 
-async function get_markers(){
-    let response = await fetch('measurements');
+async function get_grids() {
+    let response = await fetch('grid');
     if (response.ok) {
-        let json = await response.json();
-        set_markers(json);
+        let points = await response.json();
+        set_heat_grid(points)
     } else {
         alert("Ошибка HTTP: " + response.status);
     }
 }
 
-function set_markers(Data){
-    if (MarkerLayers.getLayers().length != 0){
-        MarkerLayers.clearLayers();
-    } else {
-        Data.forEach(element => {
-            marker = L.circleMarker([element[0], element[1]], {radius: 5}).bindPopup(element[2].toString());
-            MarkerLayers.addLayer(marker);
-        })
-    } 
+function set_heat_grid(Data) {
+    for (i in Data) {
+        for (j in Data[i]) {
+            Data[i][j] = [Data[i][j][0], Data[i][j][1], Data[i][j][2] / 55]
+        }
+    }
+    heat_grid_griddata = L.heatLayer(Data[0], { radius: 25 });
+    heat_grid_rbf = L.heatLayer(Data[1], { radius: 25 });
 }
+
+function show_heat_grid(method) {
+    layer = method == 'griddata' ? heat_grid_griddata : heat_grid_rbf
+    if (map.hasLayer(layer)) {
+        map.removeLayer(layer);
+    }
+    else {
+        map.addLayer(layer);
+    }
+}
+
+

@@ -13,3 +13,4 @@ __pycache__/script.cpython-38.pyc
 main/__pycache__/urls.cpython-38.pyc
 main/__pycache__/views.cpython-38.pyc
 *.bat
+main/schelduler/scheduler.py

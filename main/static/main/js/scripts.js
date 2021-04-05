@@ -92,7 +92,7 @@ async function get_grids() {
 function set_heat_grid(Data) {
     for (i in Data) {
         for (j in Data[i]) {
-            Data[i][j] = [Data[i][j][0], Data[i][j][1], Data[i][j][2] / 55]
+            Data[i][j] = [Data[i][j][0], Data[i][j][1], Math.abs(Data[i][j][2]) / 55]
         }
     }
     heat_grid_griddata = L.heatLayer(Data[0], { radius: 25 });

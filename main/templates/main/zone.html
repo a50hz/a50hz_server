@@ -9,15 +9,14 @@
 </head>
 
 <body>
-    <a id="url" >Откройте ссылку в приложении GeoMagScan</a>
+    <a id="url">Откройте ссылку в приложении GeoMagScan</a>
     <p id="id">Вы также можете вбить выбранный ID самостоятельно: </p>
     <script>
         url = document.getElementById('url')
         current_url = document.URL
-        url.setAttribute('href') = current_url
-
+        url.href = current_url
         id = document.getElementById('id')
-        id.innerHTML += document.URL.slice(current_url.lastIndexOf('=')+1)
+        id.innerHTML += new URL(location.href).searchParams.get("id")
     </script>
 </body>
 

@@ -19,6 +19,7 @@ def start():
         id="delete_old_job_executions",
         max_instances=1,
         replace_existing=True,
+        misfire_grace_time=None,
     )
     register_events(scheduler)
     scheduler.start()

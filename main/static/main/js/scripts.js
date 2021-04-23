@@ -11,7 +11,7 @@ async function get_markers() {
 
 function set_markers(Data) {
     Data.forEach(element => {
-        marker = L.circleMarker([element[0], element[1]], { radius: 5 }).bindPopup(element[2].toString());
+        marker = L.circleMarker([element[0], element[1]], { radius: 5 }).bindPopup(element[2].toString() + " nT");
         MarkerLayers.addLayer(marker);
     })
 }
@@ -72,7 +72,7 @@ function set_layer(GeoData) {
         if (GeoLayer._layers[i].feature.geometry.type == "MultiPolygon") {
             //GeoLayer._layers[i].bindPopup(GeoLayer._layers[i].feature.properties.title)
         } else {
-            GeoLayer._layers[i].bindPopup(GeoLayer._layers[i].feature.properties["level-value"].toString())
+            GeoLayer._layers[i].bindPopup(GeoLayer._layers[i].feature.properties["level-value"].toString() + " nT")
         }
 
     }

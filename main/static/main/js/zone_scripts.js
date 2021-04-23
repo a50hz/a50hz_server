@@ -13,7 +13,7 @@ function set_markers(Data) {
         MarkerLayers.clearLayers();
     } else {
         Data.forEach(element => {
-            marker = L.circleMarker([element[0], element[1]], { radius: 5 }).bindPopup(element[2].toString());
+            marker = L.circleMarker([element[0], element[1]], { radius: 5 }).bindPopup(element[2].toString() + " nT");
             MarkerLayers.addLayer(marker);
         })
     }
@@ -37,7 +37,7 @@ function set_zones(Data) {
         Zones.push(...Data)
         Data.forEach(el => {
             bounds = [[el['lat1'], el['lng1']], [el['lat2'], el['lng2']]];
-            zone = L.rectangle(bounds, { color: "#ff0000", weight: 2 }).bindPopup(`name: ${el['name']}`  + ` <a href="https://gms.myxomopx.ru/apply-zone?id=${el['id']}">https://gms.myxomopx.ru/apply-zone?id=${el['id']}</a>`);
+            zone = L.rectangle(bounds, { color: "#ff0000", weight: 2 }).bindPopup(`name: ${el['name']}` + ` <a href="https://gms.myxomopx.ru/apply-zone?id=${el['id']}">https://gms.myxomopx.ru/apply-zone?id=${el['id']}</a>`);
             ZoneLayers.addLayer(zone)
             zone.database_id = el['id']
         })
@@ -46,7 +46,7 @@ function set_zones(Data) {
 
 async function upload() {
     for (index in Zones) {
-        if (Zones[index]['status'] == 'from database'){
+        if (Zones[index]['status'] == 'from database') {
             Zones.splice(index, 1)
         }
     }

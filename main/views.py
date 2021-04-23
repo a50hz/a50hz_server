@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseNotFound
 from .models import Measurement, Plot, ResearchZone
-from script import grid
+from script import grid, levels
 import datetime
 import json
 
@@ -138,5 +138,6 @@ def get_grid(request):
     points = []
     for method in ['griddata', 'rbf']:
         lon, lat, value = grid(method)
-        points.append([[lat[i][j], lon[i][j], value[i][j]] for i in range(len(value)) for j in range(len(value[i])) if value[i][j]])
+        points.append([[lat[i][j], lon[i][j], value[i][j]] for i in range(
+            len(value)) for j in range(len(value[i])) if value[i][j] > 0])
     return HttpResponse(json.dumps(points))

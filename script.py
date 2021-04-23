@@ -1,9 +1,8 @@
 from scipy.interpolate import Rbf
-from numba import jit, prange, typed
+from numba import jit, prange
 from main.models import Extent, Measurement, Plot
 from scipy.interpolate.ndgriddata import griddata
 from django.db import connection
-import math
 import geojsoncontour
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcol
@@ -33,6 +32,7 @@ color_map = mcol.LinearSegmentedColormap.from_list(
     ],
     N=256,
 )
+
 
 # заполнение сетки значениями точек
 @jit(fastmath=True, parallel=True, nopython=True)
@@ -66,7 +66,8 @@ def get_data(lat1, lat2, lng1, lng2, step):
             longitude__gte=lng1 - step, longitude__lte=lng2 + step, latitude__gte=lat1 - step, latitude__lte=lat2 + step
         )
     )
-    data = np.asarray([[int(i.data), float(i.longitude), float(i.latitude)] for i in Measurements])
+    data = np.asarray(
+        [[int(i.data), float(i.longitude), float(i.latitude)] for i in Measurements])
     return data
 
 
@@ -75,8 +76,10 @@ def prepare_table(lat1, lat2, lng1, lng2):
     step = max((lat2 - lat1) / resolution, (lng2 - lng1) / resolution)
     area = step / 2
 
-    lat_array = np.asarray([round(i, 6) for i in np.arange(lat1, lat2, step)], dtype=np.float64)  # ширина
-    lon_array = np.asarray([round(i, 6) for i in np.arange(lng1, lng2, step)], dtype=np.float64)  # высота
+    lat_array = np.asarray([round(i, 6) for i in np.arange(
+        lat1, lat2, step)], dtype=np.float64)  # ширина
+    lon_array = np.asarray([round(i, 6) for i in np.arange(
+        lng1, lng2, step)], dtype=np.float64)  # высота
     point_grid = np.zeros((len(lat_array), len(lon_array)))
     data = get_data(lat1, lat2, lng1, lng2, area)
     point_grid = fill_grid(point_grid, data, lon_array, lat_array, area)
@@ -88,7 +91,8 @@ def prepare_table(lat1, lat2, lng1, lng2):
 def make_isolines(lon_array, lat_array, point_grid):
     figure = plt.figure()
     ax = figure.add_subplot(111)
-    contour = ax.contour(lon_array, lat_array, point_grid, levels=levels, cmap=color_map)
+    contour = ax.contour(lon_array, lat_array, point_grid,
+                         levels=levels, cmap=color_map)
     geojson = geojsoncontour.contour_to_geojson(
         contour=contour,
         ndigits=3,
@@ -101,7 +105,8 @@ def make_isolines(lon_array, lat_array, point_grid):
 def make_heatmap(lon_array, lat_array, point_grid):
     figure = plt.figure()
     ax = figure.add_subplot(111)
-    contourf = ax.contourf(lon_array, lat_array, point_grid, levels=levels, cmap=color_map)
+    contourf = ax.contourf(lon_array, lat_array, point_grid,
+                           levels=levels, cmap=color_map)
     geojson = geojsoncontour.contourf_to_geojson(
         contourf=contourf,
         ndigits=3,
@@ -116,7 +121,8 @@ def get_griddata(lon, lat, point_grid):
     lon, lat = np.meshgrid(lon, lat)
 
     new_lat, new_lon = np.meshgrid(
-        np.linspace(lat[0], lat[-1], len(lat) * mul), np.linspace(lon[0], lon[-1], len(lon) * mul)
+        np.linspace(lat[0], lat[-1], len(lat) *
+                    mul), np.linspace(lon[0], lon[-1], len(lon) * mul)
     )
     xi = (new_lat, new_lon)
     points = np.array([lat.ravel(), lon.ravel()]).T
@@ -167,7 +173,9 @@ def update():
             data = get_processed_data(lon_array, lat_array, point_grid, method)
             for kind in ["isolines", "heatmap"]:
                 plot = bytearray(set_plot(data, kind), "utf-8")
-                result = Plot.objects.create(value=plot, kind=kind, interpolation_type=method, Extent=extent)
+                Plot.objects.create(
+                    value=plot, kind=kind, interpolation_type=method,
+                    Extent=extent)
                 print("Plot added!")
 
 
@@ -178,7 +186,8 @@ def grid(method):
     coordinates = map(float, coordinates)
     res = get_processed_data(*prepare_table(*coordinates), method)
     return res
-        
+
+
 # для запросов через sql
 def my_custom_sql(self):
     with connection.cursor() as cursor:

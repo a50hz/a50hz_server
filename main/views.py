@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseNotFound
 from .models import Measurement, Plot, ResearchZone
-from script import grid, levels
+from script import grid
 import datetime
 import json
 
@@ -30,6 +30,20 @@ def get_plot(request):
             return HttpResponse(plot[0].value)
         else:
             return HttpResponseNotFound()
+
+
+def get_plots(request):
+    plots = dict()
+    for kind in ['isolines', 'heatmap']:
+        for method in ['griddata', 'rbf']:
+            plot = Plot.objects.order_by('date').reverse().filter(
+                kind=kind, interpolation_type=method, Extent_id=1)[:1]
+            # plot = list(plot.values())[0]
+            # print(plot)
+            # plot['value'] = str(plot['value'], 'utf8')
+            plots[f'{kind}_{method}'] = str(plot[0].value, 'utf8')
+    # print(plots['isolines_griddata']['value'])
+    return HttpResponse(json.dumps(plots), content_type="application/json")
 
 
 def zones(request):

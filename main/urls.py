@@ -7,6 +7,7 @@ urlpatterns = [
     path('', views.index),
     path('admin_zone', views.cooler_index),
     path('plot', views.get_plot),
+    path('plots', views.get_plots),
     path('measurements', views.data),
     path('zone/<int:id>', views.zone),
     path('apply-zone', views.apply_zone),

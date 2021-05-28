@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseNotFound
 from .models import Measurement, Plot, ResearchZone
-from script import grid
+from script import grid, set_zone
 import datetime
 import json
 
@@ -38,11 +38,7 @@ def get_plots(request):
         for method in ['griddata', 'rbf']:
             plot = Plot.objects.order_by('date').reverse().filter(
                 kind=kind, interpolation_type=method, Extent_id=1)[:1]
-            # plot = list(plot.values())[0]
-            # print(plot)
-            # plot['value'] = str(plot['value'], 'utf8')
             plots[f'{kind}_{method}'] = str(plot[0].value, 'utf8')
-    # print(plots['isolines_griddata']['value'])
     return HttpResponse(json.dumps(plots), content_type="application/json")
 
 
@@ -130,14 +126,14 @@ def data(request):
                 date = datetime.datetime.fromtimestamp(i.timestamp/1000)
                 loc = i.geolocation
                 row = Measurement(data=i.value, date_time=date,
-                                  longitude=loc.longitude, latitude=loc.latitude)
+                                  longitude=loc.longitude, latitude=loc.latitude, Zone=set_zone(loc))
                 row.save()
             return HttpResponse("Добавлен лист новых измерений")
         else:
             date = datetime.datetime.fromtimestamp(data.timestamp/1000)
             loc = data.geolocation
             row = Measurement(data=data.value, date_time=date,
-                              longitude=loc.longitude, latitude=loc.latitude)
+                              longitude=loc.longitude, latitude=loc.latitude, Zone=set_zone(loc))
             row.save()
             return HttpResponse("Добавлено новое измерение")
     elif request.method == 'GET':

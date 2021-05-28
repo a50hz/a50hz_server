@@ -39,16 +39,20 @@
         <div class="collapse navbar-collapse buttons-right nav" id="navbarSupportedContent">
           <ul class="navbar-nav mb-2 mb-lg-0">
             <li class="nav-item">
-              <a class="nav-link" href="javascript:void(0)" onclick="show_markers()">Show/Hide measurements points</a>
+              <a class="nav-link" href="javascript:void(0)" onclick="show_only_danger_lines()">highest
+                levels</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="javascript:void(0)" onclick="show_markers_heatmap()">Show/Hide heatmap of
+              <a class="nav-link" href="javascript:void(0)" onclick="show_markers()">Measurements points</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="javascript:void(0)" onclick="show_markers_heatmap()">Heatmap of
                 points</a>
             </li>
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" id="isolinesDropdown" role="button" data-bs-toggle="dropdown"
                 aria-expanded="false">
-                Show isolines
+                Isolines
               </a>
               <ul class="dropdown-menu" aria-labelledby="isolinesDropdown">
                 <li><a class="dropdown-item" href="javascript:void(0)" onclick="show_plot('isolines_griddata')">Griddata
@@ -60,7 +64,7 @@
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" id="isolinesDropdown" role="button" data-bs-toggle="dropdown"
                 aria-expanded="false">
-                Show heatmap
+                Heatmap
               </a>
               <ul class="dropdown-menu" aria-labelledby="isolinesDropdown">
                 <li><a class="dropdown-item" href="javascript:void(0)" onclick="show_heat_grid('griddata')">Griddata
@@ -72,7 +76,7 @@
             <li class="nav-item dropdown" style="width: 228px;">
               <a class="nav-link dropdown-toggle" id="heatmapDropdown" role="button" data-bs-toggle="dropdown"
                 aria-expanded="false">
-                Show countourF
+                CountourF
               </a>
               <ul class="dropdown-menu" aria-labelledby="heatmapDropdown">
                 <li><a class="dropdown-item" href="javascript:void(0)" onclick="show_plot('heatmap_griddata')">Griddata
@@ -96,6 +100,8 @@
     })
     L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
+    var danger_lines = false;
+    var deleted_layers = [];
     var GeoJSONLayers = new Map();
 
     var MarkerLayers = new L.layerGroup();
@@ -138,6 +144,9 @@
       [url_state.lat, url_state.lng, url_state.zoom] = [lat, lng, map.getZoom()]
       write_state()
     })
+
+    var legend = L.control({ position: "bottomleft" });
+
   </script>
 </body>
 

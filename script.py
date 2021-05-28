@@ -1,8 +1,7 @@
 from scipy.interpolate import Rbf
 from numba import jit, prange
-from main.models import Extent, Measurement, Plot
+from main.models import Extent, Measurement, Plot, ResearchZone
 from scipy.interpolate.ndgriddata import griddata
-from django.db import connection
 import geojsoncontour
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcol
@@ -138,7 +137,7 @@ def get_rbf(lon, lat, point_grid):
     point_grid = point_grid.reshape(len(lat), len(lon))
     new_lat = np.linspace(lat[0], lat[-1], len(lat) * mul)
     new_lon = np.linspace(lon[0], lon[-1], len(lon) * mul)
-    lon, lat = np.meshgrid(lon, lat)  # не трожь, ебанёт
+    lon, lat = np.meshgrid(lon, lat)
 
     inter_func = Rbf(lat, lon, point_grid, function="linear", smooth=0)
 
@@ -188,20 +187,68 @@ def grid(method):
     return res
 
 
-# для запросов через sql
-def my_custom_sql(self):
-    with connection.cursor() as cursor:
-        cursor.execute(self)
-        row = cursor.fetchone()
-    return row
+def true_rbf_interp():
+    extent = Extent.objects.all()[0]
+    coordinates = np.asarray(list(map(
+        float, [extent.lat1, extent.lat2, extent.lng1, extent.lng2])))
+    step = float(max((extent.lat2 - extent.lat1) / resolution,
+                     (extent.lng2 - extent.lng1) / resolution)) / 2
+    data = sorted(get_data(
+        *coordinates, step).tolist())
+    data = {(i[1], i[2]): i[0] for i in data}
+    data = np.asarray(list(set(data.items())))
+    print(len(data))
+    print(data[0])
+    lon_array = np.asarray([i[0][0] for i in data])
+    lat_array = np.asarray([i[0][1] for i in data])
+    point_grid = np.asarray([i[1] for i in data])
+    print('first_message')
+    inter_func = Rbf(x=lon_array, y=lat_array, d=point_grid,
+                     function="linear", smooth=0)
+    print('second_message')
+    extent.lat1 = float(extent.lat1)
+    extent.lat2 = float(extent.lat2)
+    extent.lng1 = float(extent.lng1)
+    extent.lng2 = float(extent.lng2)
+    new_lat = np.linspace(extent.lat1, extent.lat2,
+                          resolution)
+    new_lon = np.linspace(extent.lng1, extent.lng2,
+                          resolution)
+
+    new_lat, new_lon = np.meshgrid(new_lat, new_lon)
+    print('third_message')
+    res = inter_func(new_lat, new_lon)
+    print('fourth_message')
+    res = fill(res)
+
+    plot = make_isolines(new_lon, new_lat, res)
+    Plot.objects.create(
+        value=bytearray(plot, "utf-8"), kind='isolines', interpolation_type='rbf',
+        Extent=extent)
+    print("Plot added!")
+    # заменить записи с одних координат, на одну запись с медианным значением
 
 
-# удаление None значений
-def delete_nans(point_grid, lon_array, lat_array):
-    point_grid = point_grid.ravel()
-    lon_array = lon_array.ravel()
-    lat_array = lat_array.ravel()
-    lon_array = np.asarray(lon_array[point_grid != np.isnan])
-    lat_array = np.asarray(lat_array[point_grid != np.isnan])
-    point_grid = np.asarray(point_grid[point_grid != np.isnan])
-    return point_grid, lon_array, lat_array
+@jit(fastmath=True, parallel=True, nopython=True)
+def fill(grid, levels=levels):
+    for i in prange(len(grid)):
+        for j in prange(len(grid[i])):
+            lev = 0
+            grid[i][j] = abs(grid[i][j] - 50)
+            while lev < len(levels) and grid[i][j] >= levels[lev]:
+                lev += 1
+            grid[i][j] = levels[lev - 1]
+    return grid
+
+
+def set_zone(point):
+    for zone in ResearchZone.objects.all():
+        if (zone.lat1 <= point.latitude <= zone.lat2) and (zone.lng1 <= point.longitude <= zone.lng2):
+            return zone
+
+
+def set_zones():
+    for measurement in Measurement.objects.all():
+        measurement.Zone = set_zone(measurement)
+        measurement.save()
+        print(measurement.id)

@@ -60,22 +60,23 @@
             zoom: 11.5,
             preferCanvas: true
         })
+        ExtentLayers = L.featureGroup().addTo(map);
+        get_extents();
         Zones = []
         ZoneLayers = L.featureGroup().addTo(map);
         get_zones();
         MarkerLayers = new L.layerGroup();
         get_markers();
-
         L.control.layers({
             'osm': osm.addTo(map),
             "google": L.tileLayer('http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}', {
                 attribution: 'google'
             })
-        }, { 'markers': MarkerLayers, 'zones': ZoneLayers }, { position: 'topleft', collapsed: false }).addTo(map);
+        }, { 'markers': MarkerLayers, 'zones': ZoneLayers, 'extents': ExtentLayers }, { position: 'topleft', collapsed: false }).addTo(map);
 
         map.addControl(new L.Control.Draw({
             edit: {
-                featureGroup: ZoneLayers,
+                featureGroup: ZoneLayers
             },
             draw: {
                 marker: false,

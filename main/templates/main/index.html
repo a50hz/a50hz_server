@@ -61,18 +61,6 @@
                     Интерполяция</a></li>
               </ul>
             </li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" id="isolinesDropdown" role="button" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Heatmap
-              </a>
-              <ul class="dropdown-menu" aria-labelledby="isolinesDropdown">
-                <li><a class="dropdown-item" href="javascript:void(0)" onclick="show_heat_grid('griddata')">Griddata
-                    интерполяция</a></li>
-                <li><a class="dropdown-item" href="javascript:void(0)" onclick="show_heat_grid('rbf')">RFB
-                    Интерполяция</a></li>
-              </ul>
-            </li>
             <li class="nav-item dropdown" style="width: 228px;">
               <a class="nav-link dropdown-toggle" id="heatmapDropdown" role="button" data-bs-toggle="dropdown"
                 aria-expanded="false">
@@ -109,7 +97,7 @@
     alert("Подождите пока данные будут полностью прогружены! По окончанию загрузки вы будуте уведомлены!")
     get_markers();
     get_plots();
-    get_grids();
+    alert("Данные прогружены, вы можете приступить к работе!")
 
     const obj2Url = (data) => Object.keys(data).map(function (k) {
       return encodeURIComponent(k) + '=' + encodeURIComponent(data[k])

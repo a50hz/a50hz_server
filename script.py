@@ -178,69 +178,6 @@ def update():
                 print("Plot added!")
 
 
-# получение интерполированной сетки из точек
-def grid(method):
-    extent = Extent.objects.get(id=1)
-    coordinates = [extent.lat1, extent.lat2, extent.lng1, extent.lng2]
-    coordinates = map(float, coordinates)
-    res = get_processed_data(*prepare_table(*coordinates), method)
-    return res
-
-
-def true_rbf_interp():
-    extent = Extent.objects.all()[0]
-    coordinates = np.asarray(list(map(
-        float, [extent.lat1, extent.lat2, extent.lng1, extent.lng2])))
-    step = float(max((extent.lat2 - extent.lat1) / resolution,
-                     (extent.lng2 - extent.lng1) / resolution)) / 2
-    data = sorted(get_data(
-        *coordinates, step).tolist())
-    data = {(i[1], i[2]): i[0] for i in data}
-    data = np.asarray(list(set(data.items())))
-    print(len(data))
-    print(data[0])
-    lon_array = np.asarray([i[0][0] for i in data])
-    lat_array = np.asarray([i[0][1] for i in data])
-    point_grid = np.asarray([i[1] for i in data])
-    print('first_message')
-    inter_func = Rbf(x=lon_array, y=lat_array, d=point_grid,
-                     function="linear", smooth=0)
-    print('second_message')
-    extent.lat1 = float(extent.lat1)
-    extent.lat2 = float(extent.lat2)
-    extent.lng1 = float(extent.lng1)
-    extent.lng2 = float(extent.lng2)
-    new_lat = np.linspace(extent.lat1, extent.lat2,
-                          resolution)
-    new_lon = np.linspace(extent.lng1, extent.lng2,
-                          resolution)
-
-    new_lat, new_lon = np.meshgrid(new_lat, new_lon)
-    print('third_message')
-    res = inter_func(new_lat, new_lon)
-    print('fourth_message')
-    res = fill(res)
-
-    plot = make_isolines(new_lon, new_lat, res)
-    Plot.objects.create(
-        value=bytearray(plot, "utf-8"), kind='isolines', interpolation_type='rbf',
-        Extent=extent)
-    print("Plot added!")
-    # заменить записи с одних координат, на одну запись с медианным значением
-
-
-@jit(fastmath=True, parallel=True, nopython=True)
-def fill(grid, levels=levels):
-    for i in prange(len(grid)):
-        for j in prange(len(grid[i])):
-            lev = 0
-            grid[i][j] = abs(grid[i][j] - 50)
-            while lev < len(levels) and grid[i][j] >= levels[lev]:
-                lev += 1
-            grid[i][j] = levels[lev - 1]
-    return grid
-
-
 def set_zone(point):
     for zone in ResearchZone.objects.all():
         if (zone.lat1 <= point.latitude <= zone.lat2) and (zone.lng1 <= point.longitude <= zone.lng2):
@@ -252,3 +189,11 @@ def set_zones():
         measurement.Zone = set_zone(measurement)
         measurement.save()
         print(measurement.id)
+
+# получение интерполированной сетки из точек
+# def grid(method):
+#     extent = Extent.objects.get(id=1)
+#     coordinates = [extent.lat1, extent.lat2, extent.lng1, extent.lng2]
+#     coordinates = map(float, coordinates)
+#     res = get_processed_data(*prepare_table(*coordinates), method)
+#     return res

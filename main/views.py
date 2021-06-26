@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseNotFound
-from .models import Measurement, Plot, ResearchZone
-from script import grid, set_zone
+from .models import Measurement, Plot, ResearchZone, Extent
+from script import set_zone
 import datetime
 import json
 
@@ -17,8 +17,12 @@ def index(request):
     return render(request, 'main/index.html')
 
 
-def cooler_index(request):
-    return render(request, 'main/cooler_index.html')
+def zone_index(request):
+    return render(request, 'main/zone_index.html')
+
+
+def extent_index(request):
+    return render(request, 'main/extent_index.html')
 
 
 def get_plot(request):
@@ -75,6 +79,42 @@ def zones(request):
             else:
                 pass
         return HttpResponse("Изменения зон внесены в базу")
+
+
+def extents(request):
+    if request.method == 'GET':
+        res = list(Extent.objects.all().values(
+            'id', 'place', 'lat1', 'lng1', 'lat2', 'lng2', 'zoom'))
+        for i in range(len(res)):
+            for j in ['lat1', 'lng1', 'lat2', 'lng2', 'zoom']:
+                res[i][j] = float(res[i][j])
+            res[i]["status"] = 'from database'
+        return HttpResponse(json.dumps(res))
+    elif request.method == "POST":
+        data = json.loads(request.body)
+        if data[-1] != '11&(&*zD7K5TpJlZ':
+            return HttpResponse("Пароль не верный")
+        for i in data:
+            if type(i) is int:
+                Extent.objects.filter(id=i).delete()
+            elif type(i) is dict:
+                if i['status'] == 'created':
+                    i.pop('status')
+                    i.pop('id')
+                    Extent.objects.create(**i)
+                elif i['status'] == 'modified':
+                    entry = Extent.objects.get(id=i['id'])
+                    entry.lat1 = i['lat1']
+                    entry.lng1 = i['lng1']
+                    entry.lat2 = i['lat2']
+                    entry.lng2 = i['lng2']
+                    entry.zoom = i['zoom']
+                    entry.save()
+                else:
+                    pass
+            else:
+                pass
+        return HttpResponse("Изменения областей исследования внесены в базу")
 
 
 def zone(request, id):
@@ -144,10 +184,10 @@ def data(request):
         return HttpResponse(json.dumps(res))
 
 
-def get_grid(request):
-    points = []
-    for method in ['griddata', 'rbf']:
-        lon, lat, value = grid(method)
-        points.append([[lat[i][j], lon[i][j], value[i][j]] for i in range(
-            len(value)) for j in range(len(value[i])) if value[i][j] > 0])
-    return HttpResponse(json.dumps(points))
+# def get_grid(request):
+#     points = []
+#     for method in ['griddata', 'rbf']:
+#         lon, lat, value = grid(method)
+#         points.append([[lat[i][j], lon[i][j], value[i][j]] for i in range(
+#             len(value)) for j in range(len(value[i])) if value[i][j] > 0])
+#     return HttpResponse(json.dumps(points))

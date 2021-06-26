@@ -19,32 +19,6 @@ function set_markers(Data) {
     }
 }
 
-async function get_zones() {
-    let response = await fetch('zones');
-    if (response.ok) {
-        let json = await response.json();
-        set_zones(json);
-    } else {
-        alert("Ошибка HTTP: " + response.status);
-    }
-}
-
-function set_zones(Data) {
-    if (ZoneLayers.getLayers().length != 0) {
-        ZoneLayers.clearLayers();
-        Zones = []
-    } else {
-        Zones.push(...Data)
-        Data.forEach(el => {
-            bounds = [[el['lat1'], el['lng1']], [el['lat2'], el['lng2']]];
-            zone = L.rectangle(bounds, { color: "#ff0000", weight: 2 }).bindPopup(`name: ${el['name']}` + ` <a href="https://gms.myxomopx.ru/apply-zone?id=${el['id']}">https://gms.myxomopx.ru/apply-zone?id=${el['id']}</a>`);
-            ZoneLayers.addLayer(zone)
-            zone.database_id = el['id']
-            zone.type = 'zone'
-        })
-    }
-}
-
 async function get_extents() {
     let response = await fetch('extents');
     if (response.ok) {
@@ -58,7 +32,9 @@ async function get_extents() {
 function set_extents(Data) {
     if (ExtentLayers.getLayers().length != 0) {
         ExtentLayers.clearLayers();
+        Extents = []
     } else {
+        Extents.push(...Data)
         Data.forEach(el => {
             bounds = [[el['lat1'], el['lng1']], [el['lat2'], el['lng2']]];
             extent = L.rectangle(bounds, { color: "#ff0000", weight: 2 }).bindPopup(`name: ${el['place']}`);
@@ -70,18 +46,18 @@ function set_extents(Data) {
 }
 
 async function upload() {
-    for (index in Zones) {
-        if (Zones[index]['status'] == 'from database') {
-            Zones.splice(index, 1)
+    for (index in Extents) {
+        if (Extents[index]['status'] == 'from database') {
+            Extents.splice(index, 1)
         }
     }
-    Zones.push(window.prompt("Enter password to confirm changes", ""));
-    let response = await fetch('zones', {
+    Extents.push(window.prompt("Enter password to confirm changes", ""));
+    let response = await fetch('extents', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json;charset=utf-8'
         },
-        body: JSON.stringify(Zones)
+        body: JSON.stringify(Extents)
     });
     if (response.ok) {
         let answer = await response.text();
@@ -90,4 +66,28 @@ async function upload() {
         alert("Ошибка HTTP: " + response.status);
     }
     document.location.reload();
+}
+
+async function get_zones() {
+    let response = await fetch('zones');
+    if (response.ok) {
+        let json = await response.json();
+        set_zones(json);
+    } else {
+        alert("Ошибка HTTP: " + response.status);
+    }
+}
+
+function set_zones(Data) {
+    if (ZoneLayers.getLayers().length != 0) {
+        ZoneLayers.clearLayers();
+    } else {
+        Data.forEach(el => {
+            bounds = [[el['lat1'], el['lng1']], [el['lat2'], el['lng2']]];
+            zone = L.rectangle(bounds, { color: "#ff0000", weight: 2 }).bindPopup(`name: ${el['name']}` + ` <a href="https://gms.myxomopx.ru/apply-zone?id=${el['id']}">https://gms.myxomopx.ru/apply-zone?id=${el['id']}</a>`);
+            ZoneLayers.addLayer(zone)
+            zone.database_id = el['id']
+            zone.type = 'zone'
+        })
+    }
 }

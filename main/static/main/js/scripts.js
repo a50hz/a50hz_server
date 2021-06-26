@@ -130,42 +130,6 @@ function show_plot(type_method) {
     legend.addTo(map);
 }
 
-async function get_grids() {
-    let response = await fetch('grid');
-    if (response.ok) {
-        let points = await response.json();
-        set_heat_grid(points)
-    } else {
-        alert("Ошибка HTTP: " + response.status);
-    }
-}
-
-function set_heat_grid(Data) {
-    for (i in Data) {
-        for (j in Data[i]) {
-            Data[i][j] = [Data[i][j][0], Data[i][j][1], Math.abs(Data[i][j][2]) / 55]
-        }
-    }
-    heat_grid_griddata = L.heatLayer(Data[0], { radius: 25 });
-    heat_grid_rbf = L.heatLayer(Data[1], { radius: 25 });
-    alert("Данные прогружены, вы можете приступить к работе!")
-}
-
-function show_heat_grid(method) {
-    layer = method == 'griddata' ? heat_grid_griddata : heat_grid_rbf
-    other_layer = layer == heat_grid_griddata ? heat_grid_rbf : heat_grid_griddata
-    if (map.hasLayer(layer)) {
-        map.removeLayer(layer);
-    }
-    else {
-        if (map.hasLayer(other_layer)) {
-            map.removeLayer(other_layer);
-        }
-        map.addLayer(layer);
-    }
-}
-
-
 function show_only_danger_lines() {
     cur_lev = 36
     levels = [1, 3, 6, 10, 15, 21, 28, 36, 45, 55]

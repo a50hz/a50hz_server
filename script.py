@@ -189,11 +189,3 @@ def set_zones():
         measurement.Zone = set_zone(measurement)
         measurement.save()
         print(measurement.id)
-
-# получение интерполированной сетки из точек
-# def grid(method):
-#     extent = Extent.objects.get(id=1)
-#     coordinates = [extent.lat1, extent.lat2, extent.lng1, extent.lng2]
-#     coordinates = map(float, coordinates)
-#     res = get_processed_data(*prepare_table(*coordinates), method)
-#     return res

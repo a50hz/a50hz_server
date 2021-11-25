@@ -38,21 +38,20 @@
         </button>
         <div class="collapse navbar-collapse buttons-right nav" id="navbarSupportedContent">
           <ul class="navbar-nav mb-2 mb-lg-0">
-            <li class="nav-item">
-              <a class="nav-link" href="javascript:void(0)" onclick="show_only_danger_lines()">highest
-                levels</a>
+            <li class="nav-item" id='show_button' hidden=true>
+              <a class="nav-link" href="javascript:void(0)" onclick="show_only_danger_lines()"
+                aria-disabled="true">Возможные аномалии</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="javascript:void(0)" onclick="show_markers()">Measurements points</a>
+              <a class="nav-link" href="javascript:void(0)" onclick="show_markers()">Измерения</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="javascript:void(0)" onclick="show_markers_heatmap()">Heatmap of
-                points</a>
+              <a class="nav-link" href="javascript:void(0)" onclick="show_markers_heatmap()">Тепловая карта</a>
             </li>
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" id="isolinesDropdown" role="button" data-bs-toggle="dropdown"
                 aria-expanded="false">
-                Isolines
+                Изолинии без закраски
               </a>
               <ul class="dropdown-menu" aria-labelledby="isolinesDropdown">
                 <li><a class="dropdown-item" href="javascript:void(0)" onclick="show_plot('isolines_griddata')">Griddata
@@ -64,7 +63,7 @@
             <li class="nav-item dropdown" style="width: 228px;">
               <a class="nav-link dropdown-toggle" id="heatmapDropdown" role="button" data-bs-toggle="dropdown"
                 aria-expanded="false">
-                CountourF
+                Изолинии с закраской
               </a>
               <ul class="dropdown-menu" aria-labelledby="heatmapDropdown">
                 <li><a class="dropdown-item" href="javascript:void(0)" onclick="show_plot('heatmap_griddata')">Griddata
@@ -91,13 +90,11 @@
     var danger_lines = false;
     var deleted_layers = [];
     var GeoJSONLayers = new Map();
-
+    show_button = document.getElementById('show_button')
     var MarkerLayers = new L.layerGroup();
     var heat_markers, heat_grid_griddata, heat_grid_rbf;
-    alert("Подождите пока данные будут полностью прогружены! По окончанию загрузки вы будуте уведомлены!")
     get_markers();
     get_plots();
-    alert("Данные прогружены, вы можете приступить к работе!")
 
     const obj2Url = (data) => Object.keys(data).map(function (k) {
       return encodeURIComponent(k) + '=' + encodeURIComponent(data[k])

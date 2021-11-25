@@ -44,7 +44,8 @@ function show_markers_heatmap() {
 function show_legend_heatmap() {
     legend.onAdd = function (map) {
         var div = L.DomUtil.create("div", "legend");
-        div.innerHTML += "<h4>Levels</h4>";
+        ddiv.innerHTML += "<h6>Уровни абсолютного отклонения</h6>";
+        div.innerHTML += "<h6>напряжённости магнитного поля</h6>";
         div.innerHTML += '<i style="background: #8300e9"></i><span>1-3 nT</span><br>';
         div.innerHTML += '<i style="background: #b300d0"></i><span>3-6 nT</span><br>';
         div.innerHTML += '<i style="background: #d400b5"></i><span>6-10 nT</span><br>';
@@ -61,7 +62,8 @@ function show_legend_heatmap() {
 function show_legend_isolines() {
     legend.onAdd = function (map) {
         var div = L.DomUtil.create("div", "legend");
-        div.innerHTML += "<h4>Levels</h4>";
+        div.innerHTML += "<h6>Уровни абсолютного отклонения</h6>";
+        div.innerHTML += "<h6>напряжённости магнитного поля</h6>";
         div.innerHTML += '<i style="background: #0000ff"></i><span>1 nT</span><br>';
         div.innerHTML += '<i style="background: #8300e9"></i><span>3 nT</span><br>';
         div.innerHTML += '<i style="background: #b300d0"></i><span>6 nT</span><br>';
@@ -110,6 +112,7 @@ function show_plot(type_method) {
     layer = GeoJSONLayers.get(type_method)
     legend.remove()
     if (map.hasLayer(layer)) {
+        show_button.hidden = true
         map.removeLayer(layer);
         return
     }
@@ -128,6 +131,7 @@ function show_plot(type_method) {
         show_legend_isolines()
     }
     legend.addTo(map);
+    show_button.hidden = false
 }
 
 function show_only_danger_lines() {
